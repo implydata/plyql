@@ -306,14 +306,17 @@ export function run() {
             break;
 
           case 'csv':
+            data = Dataset.fromJS(data.toJS()); // Temp hack
             outputStr = data.toCSV();
             break;
 
           case 'tsv':
+            data = Dataset.fromJS(data.toJS()); // Temp hack
             outputStr = data.toTSV();
             break;
 
           case 'flat':
+            data = Dataset.fromJS(data.toJS()); // Temp hack
             outputStr = JSON.stringify(data.flatten(), null, 2);
             break;
 
