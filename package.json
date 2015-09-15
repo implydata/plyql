@@ -1,0 +1,42 @@
+{
+  "name": "plyql",
+  "version": "0.3.0",
+  "description": "A SQL interface for Plywood",
+  "keywords": [
+    "comand line interface",
+    "cli",
+    "sql",
+    "druid",
+    "plywood"
+  ],
+  "author": {
+    "name": "Vadim Ogievetsky",
+    "url": "http://vadim.ogievetsky.com"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/implydata/plyql.git"
+  },
+  "main": "build/cli.js",
+  "scripts": {
+    "prepublish": "./prepublish"
+  },
+  "dependencies": {
+    "chronoshift": "^0.3.x",
+    "plywood": "^0.3.x",
+    "plywood-druid-requester": "^1.1.x",
+    "plywood-mysql-requester": "^1.1.x",
+    "nopt": "^3.0.1",
+    "q": "^1.1.2"
+  },
+  "devDependencies": {
+    "chai": "~2.3.0",
+    "mocha": "~2.1.x",
+    "typescript": "1.5.0-beta",
+    "underscore": "~1.7.0"
+  },
+  "bin": {
+    "plyql": "bin/plyql"
+  }
+}
