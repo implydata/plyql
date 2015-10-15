@@ -1,7 +1,7 @@
 {
   "name": "plyql",
-  "version": "0.3.2",
-  "description": "A SQL interface for Plywood",
+  "version": "0.4.0",
+  "description": "A SQL-like interface for Plywood",
   "keywords": [
     "comand line interface",
     "cli",
@@ -23,18 +23,18 @@
     "prepublish": "./prepublish"
   },
   "dependencies": {
-    "chronoshift": "^0.3.x",
-    "plywood": "^0.3.x",
-    "plywood-druid-requester": "^1.1.x",
-    "plywood-mysql-requester": "^1.1.x",
-    "nopt": "^3.0.1",
-    "q": "^1.1.2"
+    "chronoshift": "0.3.6",
+    "plywood": "0.5.2",
+    "plywood-druid-requester": "1.2.4",
+    "plywood-mysql-requester": "1.1.4",
+    "nopt": "3.0.4",
+    "q": "1.4.1"
   },
   "devDependencies": {
-    "chai": "~2.3.0",
-    "mocha": "~2.1.x",
-    "typescript": "1.5.0-beta",
-    "underscore": "~1.7.0"
+    "chai": "3.3.0",
+    "mocha": "2.3.3",
+    "typescript": "1.6.2",
+    "underscore": "1.8.3"
   },
   "bin": {
     "plyql": "bin/plyql"

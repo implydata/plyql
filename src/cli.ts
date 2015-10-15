@@ -162,14 +162,14 @@ export function run() {
   }
 
   // Get forced attribute overrides
-  var attributeOverrides: AttributeJSs = {};
+  var attributeOverrides: AttributeJSs = [];
   var forceUnique: string[] = parsed['force-unique'] || [];
   for (let attributeName of forceUnique) {
-    attributeOverrides[attributeName] = { special: 'unique' };
+    attributeOverrides.push({ name: attributeName, special: 'unique' });
   }
   var forceHistogram: string[] = parsed['force-histogram'] || [];
   for (let attributeName of forceHistogram) {
-    attributeOverrides[attributeName] = { special: 'histogram' };
+    attributeOverrides.push({ name: attributeName, special: 'histogram' });
   }
 
   // Get output
