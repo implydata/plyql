@@ -81,28 +81,6 @@ function parseIntervalString(str: string): TimeRange {
   return TimeRange.fromJS({ start, end });
 }
 
-function getDatasourceName(ex: Expression): string {
-  var name: string = null;
-  ex.some(ex => {
-    if (ex instanceof ChainExpression) {
-      var expression = ex.expression;
-      var firstAction = ex.actions[0];
-      if (expression instanceof RefExpression) {
-        name = expression.name;
-        return true;
-      } else if (firstAction instanceof ApplyAction && (<ApplyAction>firstAction).name === 'data') {
-        var firstActionExpression = firstAction.expression;
-        if (firstActionExpression instanceof RefExpression) {
-          name = firstActionExpression.name;
-          return true;
-        }
-      }
-    }
-    return null;
-  });
-  return name;
-}
-
 function parseArgs() {
   return nopt(
     {
@@ -188,35 +166,16 @@ export function run() {
 
   // Get SQL
   var query: string = parsed['query'];
-  var expression: Expression = null;
   if (query) {
-    query = query.trim();
-    if (/^SELECT/i.test(query)) {
-      try {
-        expression = Expression.parseSQL(query);
-      } catch (e) {
-        console.log("Could not parse query as SQL:", e.message);
-        return;
-      }
+    try {
+      var sqlParse = Expression.parseSQL(query);
+    } catch (e) {
+      console.log("Could not parse query as SQL:", e.message);
+      return;
+    }
 
-    } else if (query[0] === '$') {
-      try {
-        expression = Expression.parse(query);
-      } catch (e) {
-        console.log("Could not parse query as plywood:", e.message);
-        return;
-      }
-
-    } else if (query[0] === '{') {
-      try {
-        expression = Expression.fromJS(JSON.parse(query));
-      } catch (e) {
-        console.log("Could not parse query as plywood:", e.message);
-        return;
-      }
-
-    } else {
-      console.log("Could not determine query type (query should start with 'SELECT', '$', or '{')");
+    if (sqlParse.verb !== 'SELECT') {
+      console.log("SQL must be a SELECT query");
       return;
     }
   } else {
@@ -224,13 +183,15 @@ export function run() {
     return;
   }
 
+  var expression = sqlParse.expression;
+
   if (verbose) {
     console.log('Parsed query as the following plywood expression (as JSON):');
     console.log(JSON.stringify(expression, null, 2));
     console.log('---------------------------');
   }
 
-  var dataSource = getDatasourceName(expression);
+  var dataSource = sqlParse.table;
   if (!dataSource) {
     console.log("must have data source");
     return;

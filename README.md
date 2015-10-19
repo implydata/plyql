@@ -1,6 +1,6 @@
-# plyql
+# PlyQL
 
-A SQL parser for plywood
+A SQL-like interface to plywood
 
 ## Installation
 
@@ -183,13 +183,15 @@ SELECT
 TIME_PART(__time, HOUR_OF_DAY, 'Etc/UTC') as HourOfDay,
 SUM(tweet_length) as TotalTweetLength
 FROM twitterstream
-GROUP BY TIME_PART(__time, HOUR_OF_DAY, 'Etc/UTC')
+GROUP BY 1
 ORDER BY TotalTweetLength DESC
 LIMIT 3
 "
 ```
 
-Returns:
+Notice that this `GROUP BY` is referring to one of the first column in the select.
+
+This returns:
 
 ```json
 [
