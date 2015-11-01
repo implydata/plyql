@@ -1,6 +1,6 @@
 {
   "name": "plyql",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "A SQL-like interface for Plywood",
   "keywords": [
     "comand line interface",
@@ -24,14 +24,14 @@
   },
   "dependencies": {
     "chronoshift": "0.3.6",
-    "plywood": "0.6.1",
+    "plywood": "0.7.4",
     "plywood-druid-requester": "1.2.4",
     "plywood-mysql-requester": "1.1.4",
     "nopt": "3.0.4",
     "q": "1.4.1"
   },
   "devDependencies": {
-    "chai": "3.3.0",
+    "chai": "3.4.0",
     "mocha": "2.3.3",
     "typescript": "1.6.2",
     "underscore": "1.8.3"

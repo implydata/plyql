@@ -4,10 +4,10 @@
 /// <reference path="../node_modules/plywood-druid-requester/build/plywood-druid-requester.d.ts" />
 "use strict";
 
-import fs = require('fs');
-import path = require("path");
-import Q = require('q');
-import nopt = require("nopt");
+import * as fs from 'fs';
+import * as path from "path";
+import * as Q from 'q';
+import * as nopt from "nopt";
 
 import { WallTime, Timezone, Duration } from "chronoshift";
 if (!WallTime.rules) {

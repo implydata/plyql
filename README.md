@@ -36,13 +36,13 @@ Option                     | Description
 
 ## Examples
 
-Say your Druid broker node is located at `10.20.30.40` on the standard port (`8080`) and that there is a
-datasource called `twitterstream` that has tweets in it.
+Say your Druid broker node is located at `localhost:8082` on the standard port (`8080`) and that there is a
+datasource called `twitter` that has tweets in it.
 
 Here is a simple query that gets the maximum of the `__time` column which tells you what how up to date the data in the database is.
 
-```
-plyql -h 10.20.30.40 -q "SELECT MAX(__time) AS maxTime FROM twitterstream"
+```sql
+plyql -h localhost:8082 -q "SELECT MAX(__time) AS maxTime FROM twitter"
 ```
 
 Returns:
@@ -60,14 +60,14 @@ Returns:
 
 Ok now you might want to examine the different hashtags that are trending.
 
-You might do a group by on the `first_hashtag` column like this:
+You might do a GROUP BY on the `first_hashtag` column like this:
 
-```
-plyql -h 10.20.30.40 -q "
+```sql
+plyql -h localhost:8082 -q "
 SELECT
 first_hashtag as hashtag,
 COUNT() as cnt
-FROM twitterstream
+FROM twitter
 WHERE '2015-04-15T00:00:00' <= __time AND __time < '2015-04-16T00:00:00'
 GROUP BY first_hashtag
 ORDER BY cnt DESC
@@ -82,12 +82,12 @@ large amounts of data as it can issue computationally prohibitive queries.
   
 Try it again, with a time filter:
   
-```
-plyql -h 10.20.30.40 -q "
+```sql
+plyql -h localhost:8082 -q "
 SELECT
 first_hashtag as hashtag,
 COUNT() as cnt
-FROM twitterstream
+FROM twitter
 WHERE '2015-04-15T00:00:00' <= __time AND __time < '2015-04-16T00:00:00'
 GROUP BY first_hashtag
 ORDER BY cnt DESC
@@ -125,12 +125,12 @@ Results:
 The plyql has an option `--interval` (`-i`) that automatically filters time on the last `interval` worth of time.
 It is useful if you do not want to type out a time filter.
 
-```
-plyql -h 10.20.30.40 -i P1D -q "
+```sql
+plyql -h localhost:8082 -i P1D -q "
 SELECT
 first_hashtag as hashtag,
 COUNT() as cnt
-FROM twitterstream
+FROM twitter
 GROUP BY first_hashtag
 ORDER BY cnt DESC
 LIMIT 5
@@ -139,11 +139,11 @@ LIMIT 5
 
 To get a breakdown by time the `TIME_BUCKET` function can be used:
 
-```
-plyql -h 10.20.30.40 -i P1D -q "
+```sql
+plyql -h localhost:8082 -i P1D -q "
 SELECT
 SUM(tweet_length) as TotalTweetLength
-FROM twitterstream
+FROM twitter
 GROUP BY TIME_BUCKET(__time, PT1H, 'Etc/UTC')
 "
 ```
@@ -177,19 +177,19 @@ was one of the select clauses.
 
 Time parting is also supported, here is an example:
 
-```
-plyql -h 10.20.30.40 -i P1W -q "
+```sql
+plyql -h localhost:8082 -i P1W -q "
 SELECT
 TIME_PART(__time, HOUR_OF_DAY, 'Etc/UTC') as HourOfDay,
 SUM(tweet_length) as TotalTweetLength
-FROM twitterstream
+FROM twitter
 GROUP BY 1
 ORDER BY TotalTweetLength DESC
 LIMIT 3
 "
 ```
 
-Notice that this `GROUP BY` is referring to one of the first column in the select.
+Notice that this `GROUP BY` is referring to the first column in the select.
 
 This returns:
 
@@ -210,11 +210,64 @@ This returns:
 ]
 ```
 
+It is also possible to do multi dimensional GROUP BYs
+
+```sql
+plyql -h localhost:8082 -i P1W -q "
+SELECT
+TIME_BUCKET(__time, P1D, 'Etc/UTC') as Day,
+verified AS Verified,
+retweet AS Retweet,
+SUM(statuses) as Statuses
+FROM twitter
+GROUP BY 1, 2, 3
+ORDER BY Statuses DESC
+LIMIT 3;
+"
+```
+
+Returns:
+
+```json
+[
+  {
+    "Verified": "false",
+    "Retweet": "false",
+    "Statuses": 98210107392,
+    "Day": {
+      "start": "2015-10-29T00:00:00.000Z",
+      "end": "2015-10-30T00:00:00.000Z",
+      "type": "TIME_RANGE"
+    }
+  },
+  {
+    "Verified": "false",
+    "Retweet": "false",
+    "Statuses": 97453248512,
+    "Day": {
+      "start": "2015-10-30T00:00:00.000Z",
+      "end": "2015-10-31T00:00:00.000Z",
+      "type": "TIME_RANGE"
+    }
+  },
+  {
+    "Verified": "false",
+    "Retweet": "false",
+    "Statuses": 97227407360,
+    "Day": {
+      "start": "2015-10-27T00:00:00.000Z",
+      "end": "2015-10-28T00:00:00.000Z",
+      "type": "TIME_RANGE"
+    }
+  }
+]
+```
+
 Here is an advanced example that gets the top 5 hashtags by time. PlyQL allows us to nest queries as
 aggregates like so:
 
-```
-plyql -h 10.20.30.40 -i P1D -q "
+```sql
+plyql -h localhost:8082 -i P1D -q "
 SELECT
 first_hashtag as hashtag,
 COUNT() as cnt,
@@ -224,7 +277,7 @@ COUNT() as cnt,
   GROUP BY TIME_BUCKET(__time, PT1H, 'Etc/UTC')
   LIMIT 3    -- only get the first 3 hours to keep this example output small
 ) as 'ByTime'
-FROM twitterstream
+FROM twitter
 GROUP BY first_hashtag
 ORDER BY cnt DESC
 LIMIT 5
@@ -288,7 +341,6 @@ Returns:
 
 Here is a list of features that is not currently supported that are in the works:
 
-* Different outputs like CSV, TSV, etc.
 * Query simulation - preview the queries that will be run without running them
 * Expressions within aggregate functions - `SUM(price + tax)`
 * Sub-queries in WHERE clauses  

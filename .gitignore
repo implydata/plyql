@@ -2,10 +2,5 @@
 .idea/tasks.xml
 .sass-cache/
 node_modules/
-scratch/
-parser/
-coverage/
-package/
 build/
-notes
 ToDo
