@@ -191,8 +191,14 @@ export function run() {
     console.log('---------------------------');
   }
 
-  var dataSource = sqlParse.table;
-  if (!dataSource) {
+  var dataName = 'data';
+  var dataSource: string;
+  if (parsed['data-source']) {
+    dataSource = parsed['data-source'];
+  } else if (sqlParse.table) {
+    dataName = sqlParse.table;
+    dataSource = sqlParse.table;
+  } else {
     console.log("must have data source");
     return;
   }
@@ -255,7 +261,7 @@ export function run() {
   });
 
   var context: Datum = {};
-  context[dataSource] = dataset;
+  context[dataName] = dataset;
 
   expression.compute(context)
     .then(
