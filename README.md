@@ -33,6 +33,7 @@ Option                     | Description
 `-c`, `--concurrent`       | the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
 `-fu`, `--force-unique`    | force a column to be interpreted as a hyperLogLog uniques
 `-fh`, `--force-histogram` | force a column to be interpreted as an approximate histogram
+`--use-segment-metadata`   | Use the segmentMetadata query for introspection instead of GET /druid/v2/datasources/...
 
 ## Examples
 

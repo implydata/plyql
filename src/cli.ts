@@ -35,6 +35,8 @@ Example: plyql -h 10.20.30.40 -q "SELECT MAX(__time) AS maxTime FROM twitterstre
   -r,  --retry        the number of tries a query should be attempted on error, 0 = unlimited, (default: 2)
   -c,  --concurrent   the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
 
+       --use-segment-metadata  Use the segmentMetadata query for introspection instead of GET /druid/v2/datasources/...
+
   -fu, --force-unique     force a column to be interpreted as a hyperLogLog uniques
   -fh, --force-histogram  force a column to be interpreted as an approximate histogram
 
@@ -96,7 +98,8 @@ function parseArgs() {
       "output": String,
       "allow": [String, Array],
       "force-unique": [String, Array],
-      "force-histogram": [String, Array]
+      "force-histogram": [String, Array],
+      "use-segment-metadata": Boolean
     },
     {
       "h": ["--host"],
@@ -255,6 +258,7 @@ export function run() {
     timeAttribute,
     allowEternity: allows.indexOf('eternity') !== -1,
     allowSelectQueries: allows.indexOf('select') !== -1,
+    useSegmentMetadata: Boolean(parsed['use-segment-metadata']),
     filter,
     requester,
     attributeOverrides
