@@ -36,6 +36,7 @@ Example: plyql -h 10.20.30.40 -q "SELECT MAX(__time) AS maxTime FROM twitterstre
   -c,  --concurrent   the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
 
        --use-segment-metadata  Use the segmentMetadata query for introspection instead of GET /druid/v2/datasources/...
+       --skip-cache     disable Druid caching
 
   -fu, --force-unique     force a column to be interpreted as a hyperLogLog uniques
   -fh, --force-histogram  force a column to be interpreted as an approximate histogram
@@ -99,7 +100,8 @@ function parseArgs() {
       "allow": [String, Array],
       "force-unique": [String, Array],
       "force-histogram": [String, Array],
-      "use-segment-metadata": Boolean
+      "use-segment-metadata": Boolean,
+      "skip-cache": Boolean
     },
     {
       "h": ["--host"],
@@ -252,6 +254,13 @@ export function run() {
     filter = $(timeAttribute).in(interval);
   }
 
+  var druidContext: Druid.Context = {};
+
+  if (parsed['skip-cache']) {
+    druidContext.useCache = false;
+    druidContext.populateCache = false;
+  }
+
   var dataset = External.fromJS({
     engine: 'druid',
     dataSource,
@@ -261,7 +270,8 @@ export function run() {
     useSegmentMetadata: Boolean(parsed['use-segment-metadata']),
     filter,
     requester,
-    attributeOverrides
+    attributeOverrides,
+    context: druidContext
   });
 
   var context: Datum = {};
