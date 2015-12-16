@@ -37,6 +37,8 @@ Option                     | Description
 `--use-segment-metadata`   | Use the segmentMetadata query for introspection instead of GET /druid/v2/datasources/...
 `--skip-cache`             | disable Druid caching
 
+The [PlyQL language reference](https://github.com/implydata/plywood/blob/master/docs/PlyQL.md).
+
 ## Examples
 
 Say your Druid broker node is located at `localhost:8082` on the standard port (`8080`) and that there is a
