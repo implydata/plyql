@@ -32,11 +32,12 @@ Example: plyql -h 10.20.30.40 -q "SELECT MAX(__time) AS maxTime FROM twitterstre
   -i,  --interval     add (AND) a __time filter between NOW-INTERVAL and NOW
   -q,  --query        the query to run
   -o,  --output       the output format. Possible values: json (default), csv, tsv, flat
+  -t,  --timeout      the time before a query is timed out in ms (default: 60000)
   -r,  --retry        the number of tries a query should be attempted on error, 0 = unlimited, (default: 2)
   -c,  --concurrent   the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
 
        --use-segment-metadata  Use the segmentMetadata query for introspection instead of GET /druid/v2/datasources/...
-       --skip-cache     disable Druid caching
+       --skip-cache   disable Druid caching
 
   -fu, --force-unique     force a column to be interpreted as a hyperLogLog uniques
   -fh, --force-histogram  force a column to be interpreted as an approximate histogram
@@ -94,6 +95,7 @@ function parseArgs() {
       "interval": String,
       "version": Boolean,
       "verbose": Boolean,
+      "timeout": Number,
       "retry": Number,
       "concurrent": Number,
       "output": String,
@@ -208,10 +210,12 @@ export function run() {
     return;
   }
 
+  var timeout: number = parsed.hasOwnProperty('timeout') ? parsed['timeout'] : 60000;
+
   var requester: Requester.PlywoodRequester<any>;
   requester = druidRequesterFactory({
     host: host,
-    timeout: 30000
+    timeout
   });
 
   var retry: number = parsed.hasOwnProperty('retry') ? parsed['retry'] : 2;
@@ -254,7 +258,9 @@ export function run() {
     filter = $(timeAttribute).in(interval);
   }
 
-  var druidContext: Druid.Context = {};
+  var druidContext: Druid.Context = {
+    timeout
+  };
 
   if (parsed['skip-cache']) {
     druidContext.useCache = false;

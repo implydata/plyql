@@ -4,7 +4,7 @@ A SQL-like interface to plywood
 
 ## Installation
 
-PlyQL is built on top of node so make sure you have node >= 0.12 installed.
+PlyQL is built on top of node so make sure you have node >= 4.x.x installed.
 
 ```
 npm install -g plyql
@@ -29,11 +29,13 @@ Option                     | Description
 `-q`, `--query`            | the query to run
 `-o`, `--output`           | specify the output format. Possible values: `json` **(default)**, `csv`, `tsv`, `flat`
 `-a`, `--allow`            | enable a behaviour that is turned off by default `eternity` allow queries not filtered on time `select` allow select queries
+`-t`, `--timeout`          | the time before a query is timed out in ms (default: 60000)
 `-r`, `--retry`            | the number of tries a query should be attempted on error, 0 = unlimited, (default: 2)
 `-c`, `--concurrent`       | the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
 `-fu`, `--force-unique`    | force a column to be interpreted as a hyperLogLog uniques
 `-fh`, `--force-histogram` | force a column to be interpreted as an approximate histogram
 `--use-segment-metadata`   | Use the segmentMetadata query for introspection instead of GET /druid/v2/datasources/...
+`--skip-cache`             | disable Druid caching
 
 ## Examples
 
