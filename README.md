@@ -355,4 +355,6 @@ Here is a list of features that is not currently supported that are in the works
 
 ## Questions & Support
 
-Please direct all questions to our [user groups](https://groups.google.com/forum/#!forum/imply-user-group).
+For updates about new and upcoming features follow [@implydata](https://twitter.com/implydata) on Twitter.
+                             
+Please file bugs and feature requests by opening and issue on GitHub and direct all questions to our [user groups](https://groups.google.com/forum/#!forum/imply-user-group).
