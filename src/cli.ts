@@ -36,8 +36,12 @@ Example: plyql -h 10.20.30.40 -q "SELECT MAX(__time) AS maxTime FROM twitterstre
   -r,  --retry        the number of tries a query should be attempted on error, 0 = unlimited, (default: 2)
   -c,  --concurrent   the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
 
-       --use-segment-metadata  Use the segmentMetadata query for introspection instead of GET /druid/v2/datasources/...
-       --skip-cache   disable Druid caching
+       --skip-cache               disable Druid caching
+       --introspection-strategy   Druid introspection strategy
+          Possible values:
+          * segment-metadata-fallback - (default) use the segmentMetadata and fallback to GET route
+          * segment-metadata-only     - only use the segmentMetadata query
+          * datasource-get            - only use GET /druid/v2/datasources/DATASOURCE route
 
   -fu, --force-unique     force a column to be interpreted as a hyperLogLog uniques
   -fh, --force-histogram  force a column to be interpreted as an approximate histogram
@@ -102,8 +106,8 @@ function parseArgs() {
       "allow": [String, Array],
       "force-unique": [String, Array],
       "force-histogram": [String, Array],
-      "use-segment-metadata": Boolean,
-      "skip-cache": Boolean
+      "skip-cache": Boolean,
+      "introspection-strategy": String
     },
     {
       "h": ["--host"],
@@ -181,8 +185,8 @@ export function run() {
       return;
     }
 
-    if (sqlParse.verb !== 'SELECT') {
-      console.log("SQL must be a SELECT query");
+    if (sqlParse.verb !== 'SELECT' && sqlParse.verb !== 'DESCRIBE') {
+      console.log("SQL must be a SELECT or DESCRIBE query");
       return;
     }
   } else {
@@ -273,48 +277,59 @@ export function run() {
     timeAttribute,
     allowEternity: allows.indexOf('eternity') !== -1,
     allowSelectQueries: allows.indexOf('select') !== -1,
-    useSegmentMetadata: Boolean(parsed['use-segment-metadata']),
+    introspectionStrategy: parsed['introspection-strategy'],
     filter,
     requester,
     attributeOverrides,
     context: druidContext
   });
 
-  var context: Datum = {};
-  context[dataName] = dataset;
+  if (sqlParse.verb === 'DESCRIBE') {
+    dataset.introspect().then((introspectedDataset) => {
+      console.log(JSON.stringify(introspectedDataset.toJS().attributes, null, 2));
+    }).done()
 
-  expression.compute(context)
-    .then(
-      (data: Dataset) => {
-        var outputStr: string;
-        switch (output) {
-          case 'json':
-            outputStr = JSON.stringify(data, null, 2);
-            break;
+  } else if (sqlParse.verb === 'SELECT') {
+    var context: Datum = {};
+    context[dataName] = dataset;
 
-          case 'csv':
-            data = Dataset.fromJS(data.toJS()); // Temp hack
-            outputStr = data.toCSV();
-            break;
+    expression.compute(context)
+      .then(
+        (data: Dataset) => {
+          var outputStr: string;
+          switch (output) {
+            case 'json':
+              outputStr = JSON.stringify(data, null, 2);
+              break;
 
-          case 'tsv':
-            data = Dataset.fromJS(data.toJS()); // Temp hack
-            outputStr = data.toTSV();
-            break;
+            case 'csv':
+              data = Dataset.fromJS(data.toJS()); // Temp hack
+              outputStr = data.toCSV();
+              break;
 
-          case 'flat':
-            data = Dataset.fromJS(data.toJS()); // Temp hack
-            outputStr = JSON.stringify(data.flatten(), null, 2);
-            break;
+            case 'tsv':
+              data = Dataset.fromJS(data.toJS()); // Temp hack
+              outputStr = data.toTSV();
+              break;
 
-          default:
-            outputStr = 'Unknown output type';
-            break;
+            case 'flat':
+              data = Dataset.fromJS(data.toJS()); // Temp hack
+              outputStr = JSON.stringify(data.flatten(), null, 2);
+              break;
+
+            default:
+              outputStr = 'Unknown output type';
+              break;
+          }
+          console.log(outputStr);
+        },
+        (err: Error) => {
+          console.log(`There was an error getting the data: ${err.message}`);
         }
-        console.log(outputStr);
-      },
-      (err: Error) => {
-        console.log(`There was an error getting the data: ${err.message}`);
-      }
-    ).done()
+      ).done()
+
+  } else {
+    console.log('Unsupported verb');
+
+  }
 }

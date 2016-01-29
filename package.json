@@ -24,15 +24,15 @@
   },
   "dependencies": {
     "chronoshift": "0.3.7",
-    "plywood": "0.7.30",
-    "plywood-druid-requester": "1.2.4",
-    "plywood-mysql-requester": "1.1.4",
+    "plywood": "0.8.4",
+    "plywood-druid-requester": "1.2.6",
+    "plywood-mysql-requester": "1.1.5",
     "nopt": "3.0.6",
     "q": "1.4.1"
   },
   "devDependencies": {
-    "chai": "3.4.1",
-    "mocha": "2.3.4",
+    "chai": "3.5.0",
+    "mocha": "2.4.5",
     "typescript": "1.7.5",
     "underscore": "1.8.3"
   },
