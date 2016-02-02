@@ -350,7 +350,6 @@ Here is a list of features that is not currently supported that are in the works
 * Expressions within aggregate functions - `SUM(price + tax)`
 * Sub-queries in WHERE clauses  
 * JOIN support
-* DESCRIBE queries to introspect tables
 * Window functions
 
 ## Questions & Support
