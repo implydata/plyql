@@ -93,6 +93,7 @@ function parseArgs() {
   return nopt(
     {
       "host": String,
+      "druid": String,
       "data-source": String,
       "help": Boolean,
       "query": String,
@@ -169,9 +170,9 @@ export function run() {
   }
 
   // Get host
-  var host: string = parsed['host'];
+  var host: string = parsed['druid'] || parsed['host'];
   if (!host) {
-    console.log("must have host (for now)");
+    console.log("must have a host");
     return;
   }
 

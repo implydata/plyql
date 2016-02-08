@@ -34,17 +34,17 @@ Option                     | Description
 `-c`, `--concurrent`       | the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
 `-fu`, `--force-unique`    | force a column to be interpreted as a hyperLogLog uniques
 `-fh`, `--force-histogram` | force a column to be interpreted as an approximate histogram
-`--use-segment-metadata`   | Use the segmentMetadata query for introspection instead of GET /druid/v2/datasources/...
 `--skip-cache`             | disable Druid caching
+`--introspection-strategy` | Druid introspection strategy. Use `--help` for possible values
 
-The [PlyQL language reference](https://github.com/implydata/plywood/blob/master/docs/PlyQL.md).
+For information on specific functions implemented in PlyQL please see: [PlyQL language reference](http://plywood.imply.io/plyql).
 
 ## Examples
 
-Say your Druid broker node is located at `localhost:8082` on the standard port (`8080`) and that there is a
-datasource called `twitter` that has tweets in it.
+For these examples a Druid broker node is located at `localhost:8082` on the standard port (`8080`).
+There is a data source called `twitter` that has tweet meta data in it.
 
-Here is a simple query that gets the maximum of the `__time` column which tells you what how up to date the data in the database is.
+Here is a simple query that gets the maximum of the `__time`. This query displays the time of the latest event in the database.
 
 ```sql
 plyql -h localhost:8082 -q "SELECT MAX(__time) AS maxTime FROM twitter"
@@ -347,7 +347,6 @@ Returns:
 Here is a list of features that is not currently supported that are in the works:
 
 * Query simulation - preview the queries that will be run without running them
-* Expressions within aggregate functions - `SUM(price + tax)`
 * Sub-queries in WHERE clauses  
 * JOIN support
 * Window functions
