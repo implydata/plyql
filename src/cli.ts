@@ -286,9 +286,14 @@ export function run() {
   });
 
   if (sqlParse.verb === 'DESCRIBE') {
-    dataset.introspect().then((introspectedDataset) => {
-      console.log(JSON.stringify(introspectedDataset.toJS().attributes, null, 2));
-    }).done()
+    dataset.introspect()
+      .then((introspectedDataset) => {
+        console.log(JSON.stringify(introspectedDataset.toJS().attributes, null, 2));
+      },
+      (err: Error) => {
+        console.log(`There was an error getting the metadata: ${err.message}`);
+      })
+      .done()
 
   } else if (sqlParse.verb === 'SELECT') {
     var context: Datum = {};
