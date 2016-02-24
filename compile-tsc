@@ -3,4 +3,10 @@
 rm -rf build/*
 mkdir -p build
 
-node_modules/.bin/tsc --module commonjs --noImplicitAny --noEmitOnError --removeComments --outDir build src/*
+node_modules/.bin/tsc \
+  --module commonjs \
+  --noImplicitAny \
+  --noEmitOnError \
+  --removeComments \
+  --noFallthroughCasesInSwitch \
+  --outDir build src/*

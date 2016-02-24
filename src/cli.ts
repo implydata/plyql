@@ -2,7 +2,6 @@
 /// <reference path="../typings/nopt/nopt.d.ts" />
 /// <reference path="../node_modules/plywood/build/plywood.d.ts" />
 /// <reference path="../node_modules/plywood-druid-requester/build/plywood-druid-requester.d.ts" />
-"use strict";
 
 import * as fs from 'fs';
 import * as path from "path";
