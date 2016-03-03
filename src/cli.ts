@@ -14,7 +14,7 @@ if (!WallTime.rules) {
   WallTime.init(tzData.rules, tzData.zones);
 }
 
-import { $, Expression, RefExpression, ChainExpression, Datum, Dataset, TimeRange, External, ApplyAction, AttributeJSs, helper, version } from "plywood";
+import { $, Expression, RefExpression, ChainExpression, Datum, Dataset, PlywoodValue, TimeRange, External, ApplyAction, AttributeJSs, helper, version } from "plywood";
 import { druidRequesterFactory } from 'plywood-druid-requester';
 
 function printUsage() {
@@ -185,8 +185,8 @@ export function run() {
       return;
     }
 
-    if (sqlParse.verb !== 'SELECT' && sqlParse.verb !== 'DESCRIBE') {
-      console.log("SQL must be a SELECT or DESCRIBE query");
+    if (sqlParse.verb && sqlParse.verb !== 'SELECT' && sqlParse.verb !== 'DESCRIBE') {
+      console.log("SQL must be a SELECT or DESCRIBE query or a raw expression");
       return;
     }
   } else {
@@ -294,37 +294,42 @@ export function run() {
       })
       .done()
 
-  } else if (sqlParse.verb === 'SELECT') {
+  } else if (!sqlParse.verb || sqlParse.verb === 'SELECT') {
     var context: Datum = {};
     context[dataName] = dataset;
 
     expression.compute(context)
       .then(
-        (data: Dataset) => {
+        (data: PlywoodValue) => {
           var outputStr: string;
-          switch (output) {
-            case 'json':
-              outputStr = JSON.stringify(data, null, 2);
-              break;
+          if (Dataset.isDataset(data)) {
+            var dataset = <Dataset>data;
+            switch (output) {
+              case 'json':
+                outputStr = JSON.stringify(dataset, null, 2);
+                break;
 
-            case 'csv':
-              data = Dataset.fromJS(data.toJS()); // Temp hack
-              outputStr = data.toCSV();
-              break;
+              case 'csv':
+                dataset = Dataset.fromJS(dataset.toJS()); // Temp hack
+                outputStr = dataset.toCSV();
+                break;
 
-            case 'tsv':
-              data = Dataset.fromJS(data.toJS()); // Temp hack
-              outputStr = data.toTSV();
-              break;
+              case 'tsv':
+                dataset = Dataset.fromJS(dataset.toJS()); // Temp hack
+                outputStr = dataset.toTSV();
+                break;
 
-            case 'flat':
-              data = Dataset.fromJS(data.toJS()); // Temp hack
-              outputStr = JSON.stringify(data.flatten(), null, 2);
-              break;
+              case 'flat':
+                dataset = Dataset.fromJS(dataset.toJS()); // Temp hack
+                outputStr = JSON.stringify(dataset.flatten(), null, 2);
+                break;
 
-            default:
-              outputStr = 'Unknown output type';
-              break;
+              default:
+                outputStr = 'Unknown output type';
+                break;
+            }
+          } else {
+            outputStr = String(data);
           }
           console.log(outputStr);
         },
@@ -334,7 +339,7 @@ export function run() {
       ).done()
 
   } else {
-    console.log('Unsupported verb');
+    console.log(`Unsupported verb ${sqlParse.verb}`);
 
   }
 }
