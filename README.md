@@ -73,7 +73,6 @@ SELECT
 first_hashtag as hashtag,
 COUNT() as cnt
 FROM twitter
-WHERE '2015-04-15T00:00:00' <= __time AND __time < '2015-04-16T00:00:00'
 GROUP BY first_hashtag
 ORDER BY cnt DESC
 LIMIT 5
