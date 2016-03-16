@@ -60,7 +60,7 @@ function printVersion(): void {
     console.log("could not read cli package", e.message);
     return;
   }
-  console.log(`plyql version ${cliPackage.version} [beta] (plywood version ${version})`);
+  console.log(`plyql version ${cliPackage.version} (plywood version ${version})`);
 }
 
 function parseIntervalString(str: string): TimeRange {
@@ -140,6 +140,7 @@ export function run() {
   }
 
   var verbose: boolean = parsed['verbose'];
+  if (verbose) printVersion();
 
   // Get allow
   var allows: string[] = parsed['allow'] || [];
@@ -178,6 +179,12 @@ export function run() {
   // Get SQL
   var query: string = parsed['query'];
   if (query) {
+    if (verbose) {
+      console.log('Received query:');
+      console.log(query);
+      console.log('---------------------------');
+    }
+
     try {
       var sqlParse = Expression.parseSQL(query);
     } catch (e) {
