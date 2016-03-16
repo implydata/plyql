@@ -41,7 +41,7 @@ For information on specific functions implemented in PlyQL please see: [PlyQL la
 
 ## Examples
 
-For these examples a Druid broker node is located at `localhost:8082` on the standard port (`8080`).
+For these examples a Druid broker node is located at `localhost:8082`.
 There is a data source called `twitter` that has tweet meta data in it.
 
 Here is a simple query that gets the maximum of the `__time`. This query displays the time of the latest event in the database.
