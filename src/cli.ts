@@ -35,6 +35,7 @@ Example: plyql -h 10.20.30.40 -q "SELECT MAX(__time) AS maxTime FROM twitterstre
   -r,  --retry        the number of tries a query should be attempted on error, 0 = unlimited, (default: 2)
   -c,  --concurrent   the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
 
+       --druid-version            Assume this is the Druid version and do not query it
        --skip-cache               disable Druid caching
        --introspection-strategy   Druid introspection strategy
           Possible values:
@@ -47,7 +48,7 @@ Example: plyql -h 10.20.30.40 -q "SELECT MAX(__time) AS maxTime FROM twitterstre
 
   -a,  --allow        enable a behaviour that is turned off by default
            eternity     allow queries not filtered on time
-           select       allow select queries
+           select       allow 'select' queries
 `
   )
 }
@@ -106,6 +107,7 @@ function parseArgs() {
       "allow": [String, Array],
       "force-unique": [String, Array],
       "force-histogram": [String, Array],
+      "druid-version": String,
       "skip-cache": Boolean,
       "introspection-strategy": String
     },
@@ -278,23 +280,29 @@ export function run() {
     druidContext.populateCache = false;
   }
 
-  var dataset = External.fromJS({
-    engine: 'druid',
-    dataSource,
-    timeAttribute,
-    allowEternity: allows.indexOf('eternity') !== -1,
-    allowSelectQueries: allows.indexOf('select') !== -1,
-    introspectionStrategy: parsed['introspection-strategy'],
-    filter,
-    requester,
-    attributeOverrides,
-    context: druidContext
-  });
+  try {
+    var external = External.fromJS({
+      engine: 'druid',
+      version: parsed['druid-version'],
+      dataSource,
+      timeAttribute,
+      allowEternity: allows.indexOf('eternity') !== -1,
+      allowSelectQueries: allows.indexOf('select') !== -1,
+      introspectionStrategy: parsed['introspection-strategy'],
+      filter,
+      requester,
+      attributeOverrides,
+      context: druidContext
+    });
+  } catch (e) {
+    console.error(`Error in making external: ${e.message}`);
+    return;
+  }
 
   if (sqlParse.verb === 'DESCRIBE') {
-    dataset.introspect()
-      .then((introspectedDataset) => {
-        console.log(JSON.stringify(introspectedDataset.toJS().attributes, null, 2));
+    external.introspect()
+      .then((introspectedExternal) => {
+        console.log(JSON.stringify(introspectedExternal.toJS().attributes, null, 2));
       },
       (err: Error) => {
         console.log(`There was an error getting the metadata: ${err.message}`);
@@ -303,7 +311,7 @@ export function run() {
 
   } else if (!sqlParse.verb || sqlParse.verb === 'SELECT') {
     var context: Datum = {};
-    context[dataName] = dataset;
+    context[dataName] = external;
 
     expression.compute(context)
       .then(
@@ -346,7 +354,7 @@ export function run() {
       ).done()
 
   } else {
-    console.log(`Unsupported verb ${sqlParse.verb}`);
+    console.error(`Unsupported verb ${sqlParse.verb}`);
 
   }
 }
