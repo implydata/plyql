@@ -21,7 +21,14 @@ function printUsage() {
   console.log(`
 Usage: plyql [options]
 
-Example: plyql -h 10.20.30.40 -q "SELECT MAX(__time) AS maxTime FROM twitterstream"
+Examples:
+
+  plyql -h 10.20.30.40 -q 'SELECT MAX(__time) AS maxTime FROM twitterstream'
+
+  plyql -h 10.20.30.40 -d twitterstream -i P5D -q \
+    'SELECT SUM(tweet_length) as TotalTweetLength WHERE first_hashtag = "#imply"'
+
+Arguments:
 
        --help         print this help message
        --version      display the version number
@@ -89,8 +96,31 @@ function parseIntervalString(str: string): TimeRange {
   return TimeRange.fromJS({ start, end });
 }
 
-function parseArgs() {
-  return nopt(
+export interface CommandLineArguments {
+  "host": string;
+  "druid": string;
+  "data-source": string;
+  "help": boolean;
+  "query": string;
+  "interval": string;
+  "version": boolean;
+  "verbose": boolean;
+  "timeout": number;
+  "retry": number;
+  "concurrent": number;
+  "output": string;
+  "allow": string[];
+  "force-unique": string[];
+  "force-histogram": string[];
+  "druid-version": string;
+  "skip-cache": boolean;
+  "introspection-strategy": string;
+
+  argv: any;
+}
+
+export function parseArguments(): CommandLineArguments {
+  return <any>nopt(
     {
       "host": String,
       "druid": String,
@@ -128,194 +158,181 @@ function parseArgs() {
   );
 }
 
-export function run() {
-  var parsed = parseArgs();
-
-  if (parsed.argv.original.length === 0 || parsed['help']) {
-    printUsage();
-    return;
-  }
-
-  if (parsed['version']) {
-    printVersion();
-    return;
-  }
-
-  var verbose: boolean = parsed['verbose'];
-  if (verbose) printVersion();
-
-  // Get allow
-  var allows: string[] = parsed['allow'] || [];
-  for (let allow of allows) {
-    if (!(allow === 'eternity' || allow === 'select')) {
-      console.log("Unexpected allow", allow);
+export function run(parsed: CommandLineArguments): Q.Promise<any> {
+  return Q.fcall(() => {
+    if (parsed.argv.original.length === 0 || parsed.help) {
+      printUsage();
       return;
     }
-  }
 
-  // Get forced attribute overrides
-  var attributeOverrides: AttributeJSs = [];
-  var forceUnique: string[] = parsed['force-unique'] || [];
-  for (let attributeName of forceUnique) {
-    attributeOverrides.push({ name: attributeName, special: 'unique' });
-  }
-  var forceHistogram: string[] = parsed['force-histogram'] || [];
-  for (let attributeName of forceHistogram) {
-    attributeOverrides.push({ name: attributeName, special: 'histogram' });
-  }
+    if (parsed['version']) {
+      printVersion();
+      return;
+    }
 
-  // Get output
-  var output: string = (parsed['output'] || 'json').toLowerCase();
-  if (output !== 'json' && output !== 'csv' && output !== 'tsv' && output !== 'flat') {
-    console.log(`output must be one of json, csv, tsv, or flat (is ${output}})`);
-    return;
-  }
+    var verbose: boolean = parsed['verbose'];
+    if (verbose) printVersion();
 
-  // Get host
-  var host: string = parsed['druid'] || parsed['host'];
-  if (!host) {
-    console.log("must have a host");
-    return;
-  }
+    // Get allow
+    var allows: string[] = parsed['allow'] || [];
+    for (let allow of allows) {
+      if (!(allow === 'eternity' || allow === 'select')) {
+        throw new Error(`Unexpected allow '${allow}'`);
+      }
+    }
 
-  // Get SQL
-  var query: string = parsed['query'];
-  if (query) {
+    // Get forced attribute overrides
+    var attributeOverrides: AttributeJSs = [];
+    var forceUnique: string[] = parsed['force-unique'] || [];
+    for (let attributeName of forceUnique) {
+      attributeOverrides.push({ name: attributeName, special: 'unique' });
+    }
+    var forceHistogram: string[] = parsed['force-histogram'] || [];
+    for (let attributeName of forceHistogram) {
+      attributeOverrides.push({ name: attributeName, special: 'histogram' });
+    }
+
+    // Get output
+    var output: string = (parsed['output'] || 'json').toLowerCase();
+    if (output !== 'json' && output !== 'csv' && output !== 'tsv' && output !== 'flat') {
+      throw new Error(`output must be one of json, csv, tsv, or flat (is ${output}})`);
+    }
+
+    // Get host
+    var host: string = parsed['druid'] || parsed['host'];
+    if (!host) {
+      throw new Error("must have a host");
+    }
+
+    // Get SQL
+    var query: string = parsed['query'];
+    if (query) {
+      if (verbose) {
+        console.log('Received query:');
+        console.log(query);
+        console.log('---------------------------');
+      }
+
+      try {
+        var sqlParse = Expression.parseSQL(query);
+      } catch (e) {
+        throw new Error(`Could not parse query: ${e.message}`);
+      }
+
+      if (sqlParse.verb && sqlParse.verb !== 'SELECT' && sqlParse.verb !== 'DESCRIBE') {
+        throw new Error(`Unsupported SQL verb ${sqlParse.verb} must be a SELECT or DESCRIBE query or a raw expression`);
+      }
+    } else {
+      throw new Error("no query found please use --query (-q) flag");
+    }
+
+    var expression = sqlParse.expression;
+
     if (verbose) {
-      console.log('Received query:');
-      console.log(query);
+      console.log('Parsed query as the following plywood expression (as JSON):');
+      console.log(JSON.stringify(expression, null, 2));
       console.log('---------------------------');
     }
 
+    var dataName = 'data';
+    var dataSource: string;
+    if (parsed['data-source']) {
+      dataSource = parsed['data-source'];
+    } else if (sqlParse.table) {
+      dataName = sqlParse.table;
+      dataSource = sqlParse.table;
+    } else {
+      throw new Error("must have data source");
+    }
+
+    var timeout: number = parsed.hasOwnProperty('timeout') ? parsed['timeout'] : 60000;
+
+    var requester: Requester.PlywoodRequester<any>;
+    requester = druidRequesterFactory({
+      host: host,
+      timeout
+    });
+
+    var retry: number = parsed.hasOwnProperty('retry') ? parsed['retry'] : 2;
+    if (retry > 0) {
+      requester = helper.retryRequesterFactory({
+        requester: requester,
+        retry: retry,
+        delay: 500,
+        retryOnTimeout: false
+      });
+    }
+
+    if (verbose) {
+      requester = helper.verboseRequesterFactory({
+        requester: requester
+      });
+    }
+
+    var concurrent: number = parsed.hasOwnProperty('concurrent') ? parsed['concurrent'] : 2;
+    if (concurrent > 0) {
+      requester = helper.concurrentLimitRequesterFactory({
+        requester: requester,
+        concurrentLimit: concurrent
+      });
+    }
+
+    var timeAttribute = '__time';
+
+    var filter: Expression = null;
+    var intervalString: string = parsed['interval'];
+    if (intervalString) {
+      try {
+        var interval = parseIntervalString(intervalString);
+      } catch (e) {
+        throw new Error(`Could not parse interval: ${intervalString}`);
+      }
+
+      filter = $(timeAttribute).in(interval);
+    }
+
+    var druidContext: Druid.Context = {
+      timeout
+    };
+
+    if (parsed['skip-cache']) {
+      druidContext.useCache = false;
+      druidContext.populateCache = false;
+    }
+
     try {
-      var sqlParse = Expression.parseSQL(query);
+      var external = External.fromJS({
+        engine: 'druid',
+        version: parsed['druid-version'],
+        dataSource,
+        timeAttribute,
+        allowEternity: allows.indexOf('eternity') !== -1,
+        allowSelectQueries: allows.indexOf('select') !== -1,
+        introspectionStrategy: parsed['introspection-strategy'],
+        filter,
+        requester,
+        attributeOverrides,
+        context: druidContext
+      });
     } catch (e) {
-      console.log("Could not parse query as SQL:", e.message);
-      return;
+      throw new Error(`Error making external: ${e.message}`);
     }
 
-    if (sqlParse.verb && sqlParse.verb !== 'SELECT' && sqlParse.verb !== 'DESCRIBE') {
-      console.log("SQL must be a SELECT or DESCRIBE query or a raw expression");
-      return;
-    }
-  } else {
-    console.log("no query found please use --query (-q) flag");
-    return;
-  }
+    if (sqlParse.verb === 'DESCRIBE') {
+      return external.introspect()
+        .then((introspectedExternal) => {
+          console.log(JSON.stringify(introspectedExternal.toJS().attributes, null, 2));
+        })
+        .catch((err: Error) => {
+          throw new Error(`There was an error getting the metadata: ${err.message}`);
+        })
 
-  var expression = sqlParse.expression;
+    } else if (!sqlParse.verb || sqlParse.verb === 'SELECT') {
+      var context: Datum = {};
+      context[dataName] = external;
 
-  if (verbose) {
-    console.log('Parsed query as the following plywood expression (as JSON):');
-    console.log(JSON.stringify(expression, null, 2));
-    console.log('---------------------------');
-  }
-
-  var dataName = 'data';
-  var dataSource: string;
-  if (parsed['data-source']) {
-    dataSource = parsed['data-source'];
-  } else if (sqlParse.table) {
-    dataName = sqlParse.table;
-    dataSource = sqlParse.table;
-  } else {
-    console.log("must have data source");
-    return;
-  }
-
-  var timeout: number = parsed.hasOwnProperty('timeout') ? parsed['timeout'] : 60000;
-
-  var requester: Requester.PlywoodRequester<any>;
-  requester = druidRequesterFactory({
-    host: host,
-    timeout
-  });
-
-  var retry: number = parsed.hasOwnProperty('retry') ? parsed['retry'] : 2;
-  if (retry > 0) {
-    requester = helper.retryRequesterFactory({
-      requester: requester,
-      retry: retry,
-      delay: 500,
-      retryOnTimeout: false
-    });
-  }
-
-  if (verbose) {
-    requester = helper.verboseRequesterFactory({
-      requester: requester
-    });
-  }
-
-  var concurrent: number = parsed.hasOwnProperty('concurrent') ? parsed['concurrent'] : 2;
-  if (concurrent > 0) {
-    requester = helper.concurrentLimitRequesterFactory({
-      requester: requester,
-      concurrentLimit: concurrent
-    });
-  }
-
-  var timeAttribute = '__time';
-
-  var filter: Expression = null;
-  var intervalString: string = parsed['interval'];
-  if (intervalString) {
-    try {
-      var interval = parseIntervalString(intervalString);
-    } catch (e) {
-      console.log("Could not parse interval", intervalString);
-      console.log(e.message);
-      return;
-    }
-
-    filter = $(timeAttribute).in(interval);
-  }
-
-  var druidContext: Druid.Context = {
-    timeout
-  };
-
-  if (parsed['skip-cache']) {
-    druidContext.useCache = false;
-    druidContext.populateCache = false;
-  }
-
-  try {
-    var external = External.fromJS({
-      engine: 'druid',
-      version: parsed['druid-version'],
-      dataSource,
-      timeAttribute,
-      allowEternity: allows.indexOf('eternity') !== -1,
-      allowSelectQueries: allows.indexOf('select') !== -1,
-      introspectionStrategy: parsed['introspection-strategy'],
-      filter,
-      requester,
-      attributeOverrides,
-      context: druidContext
-    });
-  } catch (e) {
-    console.error(`Error in making external: ${e.message}`);
-    return;
-  }
-
-  if (sqlParse.verb === 'DESCRIBE') {
-    external.introspect()
-      .then((introspectedExternal) => {
-        console.log(JSON.stringify(introspectedExternal.toJS().attributes, null, 2));
-      },
-      (err: Error) => {
-        console.log(`There was an error getting the metadata: ${err.message}`);
-      })
-      .done()
-
-  } else if (!sqlParse.verb || sqlParse.verb === 'SELECT') {
-    var context: Datum = {};
-    context[dataName] = external;
-
-    expression.compute(context)
-      .then(
-        (data: PlywoodValue) => {
+      return expression.compute(context)
+        .then((data: PlywoodValue) => {
           var outputStr: string;
           if (Dataset.isDataset(data)) {
             var dataset = <Dataset>data;
@@ -347,14 +364,14 @@ export function run() {
             outputStr = String(data);
           }
           console.log(outputStr);
-        },
-        (err: Error) => {
-          console.log(`There was an error getting the data: ${err.message}`);
-        }
-      ).done()
+        })
+        .catch((err: Error) => {
+          throw new Error(`There was an error getting the data: ${err.message}`);
+        });
 
-  } else {
-    console.error(`Unsupported verb ${sqlParse.verb}`);
+    } else {
+      throw new Error(`Unsupported verb ${sqlParse.verb}`);
 
-  }
+    }
+  });
 }
