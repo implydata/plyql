@@ -1,6 +1,6 @@
 {
   "name": "plyql",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "description": "A SQL-like interface for Plywood",
   "keywords": [
     "comand line interface",
