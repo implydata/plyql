@@ -14,7 +14,8 @@ if (!WallTime.rules) {
   WallTime.init(tzData.rules, tzData.zones);
 }
 
-import { $, Expression, RefExpression, ChainExpression, Datum, Dataset, PlywoodValue, TimeRange, External, ApplyAction, AttributeJSs, helper, version } from "plywood";
+import { $, Expression, RefExpression, ChainExpression, Datum, Dataset, PlywoodValue, TimeRange,
+  External, DruidExternal, ApplyAction, AttributeJSs, helper, version } from "plywood";
 import { druidRequesterFactory } from 'plywood-druid-requester';
 
 function printUsage() {
@@ -22,6 +23,9 @@ function printUsage() {
 Usage: plyql [options]
 
 Examples:
+  plyql -h 10.20.30.40 -q 'SHOW TABLES'
+
+  plyql -h 10.20.30.40 -q 'DESCRIBE twitterstream'
 
   plyql -h 10.20.30.40 -q 'SELECT MAX(__time) AS maxTime FROM twitterstream'
 
@@ -219,8 +223,8 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
         throw new Error(`Could not parse query: ${e.message}`);
       }
 
-      if (sqlParse.verb && sqlParse.verb !== 'SELECT' && sqlParse.verb !== 'DESCRIBE') {
-        throw new Error(`Unsupported SQL verb ${sqlParse.verb} must be a SELECT or DESCRIBE query or a raw expression`);
+      if (sqlParse.verb && sqlParse.verb !== 'SELECT' && sqlParse.verb !== 'DESCRIBE' && sqlParse.verb !== 'SHOW') {
+        throw new Error(`Unsupported SQL verb ${sqlParse.verb} must be SELECT, DESCRIBE, SHOW, or a raw expression`);
       }
     } else {
       throw new Error("no query found please use --query (-q) flag");
@@ -232,17 +236,6 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       console.log('Parsed query as the following plywood expression (as JSON):');
       console.log(JSON.stringify(expression, null, 2));
       console.log('---------------------------');
-    }
-
-    var dataName = 'data';
-    var dataSource: string;
-    if (parsed['data-source']) {
-      dataSource = parsed['data-source'];
-    } else if (sqlParse.table) {
-      dataName = sqlParse.table;
-      dataSource = sqlParse.table;
-    } else {
-      throw new Error("must have data source");
     }
 
     var timeout: number = parsed.hasOwnProperty('timeout') ? parsed['timeout'] : 60000;
@@ -275,6 +268,31 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
         requester: requester,
         concurrentLimit: concurrent
       });
+    }
+
+    if (sqlParse.verb === 'SHOW') {
+      if (!/TABLES/i.test((<any>sqlParse).rest)) {
+        throw new Error(`Only SHOW TABLES is supported`);
+      }
+
+      return DruidExternal.getSourceList(requester)
+        .then((sources) => {
+          console.log(JSON.stringify(sources, null, 2));
+        })
+        .catch((err: Error) => {
+          throw new Error(`There was an error getting the source list: ${err.message}`);
+        })
+    }
+
+    var dataName = 'data';
+    var dataSource: string;
+    if (parsed['data-source']) {
+      dataSource = parsed['data-source'];
+    } else if (sqlParse.table) {
+      dataName = sqlParse.table;
+      dataSource = sqlParse.table;
+    } else {
+      throw new Error("must have data source");
     }
 
     var timeAttribute = '__time';
@@ -310,10 +328,9 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
         allowSelectQueries: allows.indexOf('select') !== -1,
         introspectionStrategy: parsed['introspection-strategy'],
         filter,
-        requester,
         attributeOverrides,
         context: druidContext
-      });
+      }, requester);
     } catch (e) {
       throw new Error(`Error making external: ${e.message}`);
     }
