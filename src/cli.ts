@@ -45,6 +45,7 @@ Arguments:
   -t,  --timeout      the time before a query is timed out in ms (default: 60000)
   -r,  --retry        the number of tries a query should be attempted on error, 0 = unlimited, (default: 2)
   -c,  --concurrent   the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
+       --rollup       use rollup mode [COUNT() -> SUM(count)]
 
        --druid-version            Assume this is the Druid version and do not query it
        --skip-cache               disable Druid caching
@@ -117,6 +118,7 @@ export interface CommandLineArguments {
   "force-unique": string[];
   "force-histogram": string[];
   "druid-version": string;
+  "rollup": boolean;
   "skip-cache": boolean;
   "introspection-strategy": string;
 
@@ -142,6 +144,7 @@ export function parseArguments(): CommandLineArguments {
       "force-unique": [String, Array],
       "force-histogram": [String, Array],
       "druid-version": String,
+      "rollup": Boolean,
       "skip-cache": Boolean,
       "introspection-strategy": String
     },
@@ -323,6 +326,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
         engine: 'druid',
         version: parsed['druid-version'],
         dataSource,
+        rollup: parsed['rollup'],
         timeAttribute,
         allowEternity: allows.indexOf('eternity') !== -1,
         allowSelectQueries: allows.indexOf('select') !== -1,
