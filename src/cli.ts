@@ -8,13 +8,13 @@ import * as path from "path";
 import * as Q from 'q';
 import * as nopt from "nopt";
 
-import { WallTime, Timezone, Duration } from "chronoshift";
+import { WallTime, Timezone, Duration, parseInterval } from "chronoshift";
 if (!WallTime.rules) {
   var tzData = require("chronoshift/lib/walltime/walltime-data.js");
   WallTime.init(tzData.rules, tzData.zones);
 }
 
-import { $, Expression, RefExpression, ChainExpression, Datum, Dataset, PlywoodValue, TimeRange,
+import { $, Expression, Datum, Dataset, PlywoodValue, TimeRange,
   External, DruidExternal, ApplyAction, AttributeJSs, helper, version } from "plywood";
 import { druidRequesterFactory } from 'plywood-druid-requester';
 
@@ -75,31 +75,6 @@ function printVersion(): void {
     return;
   }
   console.log(`plyql version ${cliPackage.version} (plywood version ${version})`);
-}
-
-function parseIntervalString(str: string): TimeRange {
-  var parts = str.split('/');
-  if (parts.length > 2) throw new Error(`Can not parse string ${str}`);
-  var p0: string = parts[0];
-  var p1: string = parts.length === 2 ? parts[1] : (new Date()).toISOString();
-
-  var start: Date = null;
-  var end: Date = null;
-  var duration: Duration = null;
-  if (p0[0] === 'P') {
-    duration = Duration.fromJS(p0);
-    end = new Date(p1);
-    start = duration.move(end, Timezone.UTC, -1);
-  } else if (p1[0] === 'P') {
-    start = new Date(p0);
-    duration = Duration.fromJS(p1);
-    end = duration.move(end, Timezone.UTC, 1);
-  } else {
-    start = new Date(p0);
-    end = new Date(p1);
-  }
-
-  return TimeRange.fromJS({ start, end });
 }
 
 export interface CommandLineArguments {
@@ -215,6 +190,11 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       throw new Error("must have a host");
     }
 
+    var timezone = Timezone.UTC;
+    if (parsed['timezone']) {
+      timezone = Timezone.fromJS(parsed['timezone']);
+    }
+
     // Get SQL
     var query: string = parsed['query'];
     if (query) {
@@ -225,7 +205,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       }
 
       try {
-        var sqlParse = Expression.parseSQL(query);
+        var sqlParse = Expression.parseSQL(query, timezone);
       } catch (e) {
         throw new Error(`Could not parse query: ${e.message}`);
       }
@@ -308,7 +288,8 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
     var intervalString: string = parsed['interval'];
     if (intervalString) {
       try {
-        var interval = parseIntervalString(intervalString);
+        var { computedStart, computedEnd } = parseInterval(intervalString, timezone);
+        var interval = TimeRange.fromJS({ start: computedStart, end: computedEnd });
       } catch (e) {
         throw new Error(`Could not parse interval: ${intervalString}`);
       }
@@ -355,11 +336,6 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
     } else if (!sqlParse.verb || sqlParse.verb === 'SELECT') {
       var context: Datum = {};
       context[dataName] = external;
-
-      var timezone = Timezone.UTC;
-      if (parsed['timezone']) {
-        timezone = Timezone.fromJS(parsed['timezone']);
-      }
 
       return expression.compute(context, { timezone })
         .then((data: PlywoodValue) => {
