@@ -40,6 +40,7 @@ Arguments:
   -h,  --host         the host to connect to
   -d,  --data-source  use this data source for the query (supersedes FROM clause)
   -i,  --interval     add (AND) a __time filter between NOW-INTERVAL and NOW
+  -tz, --timezone     the default timezone
   -q,  --query        the query to run
   -o,  --output       the output format. Possible values: json (default), csv, tsv, flat
   -t,  --timeout      the time before a query is timed out in ms (default: 60000)
@@ -102,27 +103,28 @@ function parseIntervalString(str: string): TimeRange {
 }
 
 export interface CommandLineArguments {
-  "host": string;
-  "druid": string;
-  "data-source": string;
-  "help": boolean;
-  "query": string;
-  "interval": string;
-  "version": boolean;
-  "verbose": boolean;
-  "timeout": number;
-  "retry": number;
-  "concurrent": number;
-  "output": string;
-  "allow": string[];
-  "force-unique": string[];
-  "force-histogram": string[];
-  "druid-version": string;
-  "rollup": boolean;
-  "skip-cache": boolean;
-  "introspection-strategy": string;
+  "host"?: string;
+  "druid"?: string;
+  "data-source"?: string;
+  "help"?: boolean;
+  "query"?: string;
+  "interval"?: string;
+  "timezone"?: string;
+  "version"?: boolean;
+  "verbose"?: boolean;
+  "timeout"?: number;
+  "retry"?: number;
+  "concurrent"?: number;
+  "output"?: string;
+  "allow"?: string[];
+  "force-unique"?: string[];
+  "force-histogram"?: string[];
+  "druid-version"?: string;
+  "rollup"?: boolean;
+  "skip-cache"?: boolean;
+  "introspection-strategy"?: string;
 
-  argv: any;
+  argv?: any;
 }
 
 export function parseArguments(): CommandLineArguments {
@@ -134,6 +136,7 @@ export function parseArguments(): CommandLineArguments {
       "help": Boolean,
       "query": String,
       "interval": String,
+      "timezone": String,
       "version": Boolean,
       "verbose": Boolean,
       "timeout": Number,
@@ -154,6 +157,7 @@ export function parseArguments(): CommandLineArguments {
       "v": ["--verbose"],
       "d": ["--data-source"],
       "i": ["--interval"],
+      "tz": ["--timezone"],
       "a": ["--allow"],
       "r": ["--retry"],
       "c": ["--concurrent"],
@@ -352,7 +356,12 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       var context: Datum = {};
       context[dataName] = external;
 
-      return expression.compute(context)
+      var timezone = Timezone.UTC;
+      if (parsed['timezone']) {
+        timezone = Timezone.fromJS(parsed['timezone']);
+      }
+
+      return expression.compute(context, { timezone })
         .then((data: PlywoodValue) => {
           var outputStr: string;
           if (Dataset.isDataset(data)) {

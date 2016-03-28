@@ -26,6 +26,7 @@ Option                     | Description
 `-h`, `--host`             | the host to connect to
 `-d`, `--data-source`      | use this data source for the query (supersedes FROM clause)
 `-i`, `--interval`         | add (AND) a `__time` filter between NOW-INTERVAL and NOW
+`-tz`, `--timezone`        | the default timezone
 `-q`, `--query`            | the query to run
 `-o`, `--output`           | specify the output format. Possible values: `json` **(default)**, `csv`, `tsv`, `flat`
 `-a`, `--allow`            | enable a behaviour that is turned off by default `eternity` allow queries not filtered on time `select` allow select queries
