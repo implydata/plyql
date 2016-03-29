@@ -33,7 +33,7 @@ Option                     | Description
 `-r`, `--retry`            | the number of tries a query should be attempted on error, 0 = unlimited, (default: 2)
 `-c`, `--concurrent`       | the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
 `--rollup`                 | use rollup mode [COUNT() -> SUM(count)]
-`--druid-version`          | Assume this is the Druid version and do not query it
+`--druid-version`          | Assume this is the Druid version and do not query for it
 `--skip-cache`             | disable Druid caching
 `--introspection-strategy` | Druid introspection strategy. Use `--help` for possible values
 `-fu`, `--force-unique`    | force a column to be interpreted as a hyperLogLog uniques
