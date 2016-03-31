@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "chronoshift": "0.4.2",
-    "plywood": "0.9.22",
+    "plywood": "0.9.23",
     "plywood-druid-requester": "1.4.1",
     "plywood-mysql-requester": "1.2.2",
     "nopt": "3.0.6",
