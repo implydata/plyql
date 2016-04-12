@@ -348,17 +348,14 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
                 break;
 
               case 'csv':
-                dataset = Dataset.fromJS(dataset.toJS()); // Temp hack
-                outputStr = dataset.toCSV();
+                outputStr = dataset.toCSV({ finalLineBreak: 'include' });
                 break;
 
               case 'tsv':
-                dataset = Dataset.fromJS(dataset.toJS()); // Temp hack
-                outputStr = dataset.toTSV();
+                outputStr = dataset.toTSV({ finalLineBreak: 'include' });
                 break;
 
               case 'flat':
-                dataset = Dataset.fromJS(dataset.toJS()); // Temp hack
                 outputStr = JSON.stringify(dataset.flatten(), null, 2);
                 break;
 
