@@ -219,7 +219,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
 
     var expression = sqlParse.expression;
 
-    if (verbose) {
+    if (verbose && expression) {
       console.log('Parsed query as the following plywood expression (as JSON):');
       console.log(JSON.stringify(expression, null, 2));
       console.log('---------------------------');
