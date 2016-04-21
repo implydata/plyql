@@ -1,13 +1,15 @@
 {
   "name": "plyql",
-  "version": "0.6.28",
+  "version": "0.7.0",
   "description": "A SQL-like interface for Plywood",
   "keywords": [
     "comand line interface",
     "cli",
     "sql",
     "druid",
-    "plywood"
+    "plywood",
+    "mysql",
+    "gateway"
   ],
   "author": {
     "name": "Vadim Ogievetsky",
@@ -23,16 +25,22 @@
     "prepublish": "./prepublish"
   },
   "dependencies": {
+    "body-parser": "1.15.0",
     "chronoshift": "0.4.2",
-    "plywood": "0.10.10",
+    "compression": "1.6.1",
+    "express": "4.13.4",
+    "mysql2": "git://github.com/vogievetsky/node-mysql2.git#0d65b49",
+    "nopt": "3.0.6",
+    "plywood": "0.10.11",
     "plywood-druid-requester": "1.4.3",
     "plywood-mysql-requester": "1.2.2",
-    "nopt": "3.0.6",
-    "q": "1.4.1"
+    "q": "1.4.1",
+    "table": "3.7.8"
   },
   "devDependencies": {
     "chai": "3.5.0",
     "mocha": "2.4.5",
+    "request": "2.72.0",
     "typescript": "1.8.10"
   },
   "bin": {

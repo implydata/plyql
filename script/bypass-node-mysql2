@@ -1,0 +1,5 @@
+#!/bin/bash -e
+
+# This script is used to point node-mysql2 latest to my local copy for testing
+
+echo "console.log('Bypass node-mysql2'); module.exports = require('../../../node-mysql2/index.js');" > ./node_modules/mysql2/index.js
