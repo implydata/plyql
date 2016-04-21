@@ -1,5 +1,6 @@
 /// <reference path="../typings/node/node.d.ts" />
 /// <reference path="../typings/nopt/nopt.d.ts" />
+/// <reference path="../typings/mysql2/mysql2.d.ts" />
 /// <reference path="../node_modules/plywood/build/plywood.d.ts" />
 /// <reference path="../node_modules/plywood-druid-requester/build/plywood-druid-requester.d.ts" />
 
@@ -15,8 +16,13 @@ if (!WallTime.rules) {
 }
 
 import { $, Expression, Datum, Dataset, PlywoodValue, TimeRange,
-  External, DruidExternal, ApplyAction, AttributeJSs, helper, version } from "plywood";
-import { druidRequesterFactory } from 'plywood-druid-requester';
+  External, DruidExternal, AttributeJSs, helper, version } from "plywood";
+
+import { properDruidRequesterFactory } from "./requester.ts";
+
+import { getVariablesDataset } from './variables';
+import { addExternal, getSchemataDataset, getTablesDataset, getColumnsDataset } from './schema';
+
 
 function printUsage() {
   console.log(`
@@ -40,13 +46,15 @@ Arguments:
   -h,  --host         the host to connect to
   -d,  --data-source  use this data source for the query (supersedes FROM clause)
   -i,  --interval     add (AND) a __time filter between NOW-INTERVAL and NOW
-  -tz, --timezone     the default timezone
-  -q,  --query        the query to run
+  -tz, --timezone     the default timezone  
   -o,  --output       the output format. Possible values: json (default), csv, tsv, flat
-  -t,  --timeout      the time before a query is timed out in ms (default: 60000)
+  -t,  --timeout      the time before a query is timed out in ms (default: 180000)
   -r,  --retry        the number of tries a query should be attempted on error, 0 = unlimited, (default: 2)
   -c,  --concurrent   the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
        --rollup       use rollup mode [COUNT() -> SUM(count)]
+       
+  -q,  --query        the query to run
+       --experimental-mysql-facade  [Experimental] the port on which to start the MySQL facade server
 
        --druid-version            Assume this is the Druid version and do not query it
        --skip-cache               disable Druid caching
@@ -83,6 +91,7 @@ export interface CommandLineArguments {
   "data-source"?: string;
   "help"?: boolean;
   "query"?: string;
+  "experimental-mysql-facade"?: number;
   "interval"?: string;
   "timezone"?: string;
   "version"?: boolean;
@@ -110,6 +119,7 @@ export function parseArguments(): CommandLineArguments {
       "data-source": String,
       "help": Boolean,
       "query": String,
+      "experimental-mysql-facade": Number,
       "interval": String,
       "timezone": String,
       "version": Boolean,
@@ -195,6 +205,69 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       timezone = Timezone.fromJS(parsed['timezone']);
     }
 
+    var timeout: number = parsed.hasOwnProperty('timeout') ? parsed['timeout'] : 180000;
+    var retry: number = parsed.hasOwnProperty('retry') ? parsed['retry'] : 2;
+    var concurrent: number = parsed.hasOwnProperty('concurrent') ? parsed['concurrent'] : 2;
+
+    var timeAttribute = '__time';
+
+    var filter: Expression = null;
+    var intervalString: string = parsed['interval'];
+    if (intervalString) {
+      try {
+        var { computedStart, computedEnd } = parseInterval(intervalString, timezone);
+        var interval = TimeRange.fromJS({ start: computedStart, end: computedEnd });
+      } catch (e) {
+        throw new Error(`Could not parse interval: ${intervalString}`);
+      }
+
+      filter = $(timeAttribute).in(interval);
+    }
+
+    var dataSource = parsed['data-source'] || null;
+
+    // ============== End parse ===============
+
+    var requester = properDruidRequesterFactory({
+      druidHost: host,
+      retry,
+      timeout,
+      verbose,
+      concurrentLimit: concurrent
+    });
+
+    // ============== Do introspect ===============
+
+    var sourceList = dataSource ? Q([dataSource]) : DruidExternal.getSourceList(requester);
+
+    var introspectedExternals = sourceList.then((sources) => {
+      if (verbose) {
+        console.log(`Found sources [${sources.join(',')}]`);
+      }
+
+      return Q.all(sources.map(source => {
+        return External.fromJS({
+            engine: 'druid',
+            dataSource: source,
+            timeAttribute: 'time',
+            allowEternity: true,
+            allowSelectQueries: true,
+            context: druidContext,
+            filter
+          }, requester)
+          .introspect()
+          .then((introspectedExternal) => {
+            context[source] = introspectedExternal;
+            addExternal(source, introspectedExternal);
+          });
+      }));
+    });
+
+    //introspectedExternals
+
+    //experimental-mysql-facade
+
+
     // Get SQL
     var query: string = parsed['query'];
     if (query) {
@@ -225,38 +298,6 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       console.log('---------------------------');
     }
 
-    var timeout: number = parsed.hasOwnProperty('timeout') ? parsed['timeout'] : 60000;
-
-    var requester: Requester.PlywoodRequester<any>;
-    requester = druidRequesterFactory({
-      host: host,
-      timeout
-    });
-
-    var retry: number = parsed.hasOwnProperty('retry') ? parsed['retry'] : 2;
-    if (retry > 0) {
-      requester = helper.retryRequesterFactory({
-        requester: requester,
-        retry: retry,
-        delay: 500,
-        retryOnTimeout: false
-      });
-    }
-
-    if (verbose) {
-      requester = helper.verboseRequesterFactory({
-        requester: requester
-      });
-    }
-
-    var concurrent: number = parsed.hasOwnProperty('concurrent') ? parsed['concurrent'] : 2;
-    if (concurrent > 0) {
-      requester = helper.concurrentLimitRequesterFactory({
-        requester: requester,
-        concurrentLimit: concurrent
-      });
-    }
-
     if (sqlParse.rewrite === 'SHOW') {
       if (!/SHOW +TABLES/i.test(query)) {
         throw new Error(`Only SHOW TABLES is supported`);
@@ -280,21 +321,6 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       dataSource = sqlParse.table;
     } else {
       throw new Error("must have data source");
-    }
-
-    var timeAttribute = '__time';
-
-    var filter: Expression = null;
-    var intervalString: string = parsed['interval'];
-    if (intervalString) {
-      try {
-        var { computedStart, computedEnd } = parseInterval(intervalString, timezone);
-        var interval = TimeRange.fromJS({ start: computedStart, end: computedEnd });
-      } catch (e) {
-        throw new Error(`Could not parse interval: ${intervalString}`);
-      }
-
-      filter = $(timeAttribute).in(interval);
     }
 
     var druidContext: Druid.Context = {
