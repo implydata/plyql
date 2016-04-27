@@ -257,8 +257,8 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       });
     }
 
-    if (sqlParse.verb === 'SHOW') {
-      if (!/TABLES/i.test((<any>sqlParse).rest)) {
+    if (sqlParse.rewrite === 'SHOW') {
+      if (!/SHOW +TABLES/i.test(query)) {
         throw new Error(`Only SHOW TABLES is supported`);
       }
 
