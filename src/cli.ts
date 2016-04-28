@@ -1,6 +1,5 @@
 /// <reference path="../typings/node/node.d.ts" />
 /// <reference path="../typings/nopt/nopt.d.ts" />
-/// <reference path="../typings/mysql2/mysql2.d.ts" />
 /// <reference path="../node_modules/plywood/build/plywood.d.ts" />
 /// <reference path="../node_modules/plywood-druid-requester/build/plywood-druid-requester.d.ts" />
 
@@ -16,13 +15,13 @@ if (!WallTime.rules) {
 }
 
 import { $, Expression, Datum, Dataset, PlywoodValue, TimeRange,
-  External, DruidExternal, AttributeJSs, helper, version } from "plywood";
+  External, DruidExternal, AttributeJSs, SQLParse, version } from "plywood";
 
-import { properDruidRequesterFactory } from "./requester.ts";
+import { properDruidRequesterFactory } from "./requester";
+import { executeSQLParse } from "./plyql-executor";
 
 import { getVariablesDataset } from './variables';
 import { addExternal, getSchemataDataset, getTablesDataset, getColumnsDataset } from './schema';
-
 
 function printUsage() {
   console.log(`
@@ -59,10 +58,10 @@ Arguments:
        --druid-version            Assume this is the Druid version and do not query it
        --skip-cache               disable Druid caching
        --introspection-strategy   Druid introspection strategy
-          Possible values:
-          * segment-metadata-fallback - (default) use the segmentMetadata and fallback to GET route
-          * segment-metadata-only     - only use the segmentMetadata query
-          * datasource-get            - only use GET /druid/v2/datasources/DATASOURCE route
+           Possible values:
+           * segment-metadata-fallback - (default) use the segmentMetadata and fallback to GET route
+           * segment-metadata-only     - only use the segmentMetadata query
+           * datasource-get            - only use GET /druid/v2/datasources/DATASOURCE route
 
   -fu, --force-unique     force a column to be interpreted as a hyperLogLog uniques
   -fh, --force-histogram  force a column to be interpreted as an approximate histogram
@@ -110,6 +109,8 @@ export interface CommandLineArguments {
 
   argv?: any;
 }
+
+type Mode = 'query' | 'server' | 'facade';
 
 export function parseArguments(): CommandLineArguments {
   return <any>nopt(
@@ -209,6 +210,15 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
     var retry: number = parsed.hasOwnProperty('retry') ? parsed['retry'] : 2;
     var concurrent: number = parsed.hasOwnProperty('concurrent') ? parsed['concurrent'] : 2;
 
+    var druidContext: Druid.Context = {
+      timeout
+    };
+
+    if (parsed['skip-cache']) {
+      druidContext.useCache = false;
+      druidContext.populateCache = false;
+    }
+
     var timeAttribute = '__time';
 
     var filter: Expression = null;
@@ -226,6 +236,43 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
 
     var dataSource = parsed['data-source'] || null;
 
+    // Get SQL
+    var mode: Mode;
+    var sqlParse: SQLParse;
+    var mysqlFacadePort: number;
+    if (parsed['query']) {
+      mode = 'query';
+      let query: string = parsed['query'];
+      if (verbose) {
+        console.log('Received query:');
+        console.log(query);
+        console.log('---------------------------');
+      }
+
+      try {
+        sqlParse = Expression.parseSQL(query, timezone);
+      } catch (e) {
+        throw new Error(`Could not parse query: ${e.message}`);
+      }
+
+      if (sqlParse.verb && sqlParse.verb !== 'SELECT') { // DESCRIBE + SHOW get re-written
+        throw new Error(`Unsupported SQL verb ${sqlParse.verb} must be SELECT, DESCRIBE, SHOW, or a raw expression`);
+      }
+
+      if (verbose && sqlParse.expression) {
+        console.log('Parsed query as the following plywood expression (as JSON):');
+        console.log(JSON.stringify(sqlParse.expression, null, 2));
+        console.log('---------------------------');
+      }
+
+    } else if (parsed['experimental-mysql-facade']) {
+      mode = 'facade';
+      mysqlFacadePort = parsed['experimental-mysql-facade'];
+
+    } else {
+      throw new Error("must have --query (-q) or --experimental-mysql-facade flag set");
+    }
+
     // ============== End parse ===============
 
     var requester = properDruidRequesterFactory({
@@ -240,167 +287,103 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
 
     var sourceList = dataSource ? Q([dataSource]) : DruidExternal.getSourceList(requester);
 
-    var introspectedExternals = sourceList.then((sources) => {
+    var contextPromise = sourceList.then((sources) => {
       if (verbose) {
         console.log(`Found sources [${sources.join(',')}]`);
       }
 
+      var context: Datum = {};
+
+      var variablesDataset = getVariablesDataset();
+      context['GLOBAL_VARIABLES'] = variablesDataset;
+      context['SESSION_VARIABLES'] = variablesDataset;
+
       return Q.all(sources.map(source => {
         return External.fromJS({
-            engine: 'druid',
-            dataSource: source,
-            timeAttribute: 'time',
-            allowEternity: true,
-            allowSelectQueries: true,
-            context: druidContext,
-            filter
-          }, requester)
+          engine: 'druid',
+          dataSource: source,
+          rollup: parsed['rollup'],
+          timeAttribute,
+          allowEternity: mode === 'query' ? (allows.indexOf('eternity') !== -1) : false,
+          allowSelectQueries: mode === 'query' ? (allows.indexOf('select') !== -1) : true,
+          introspectionStrategy: parsed['introspection-strategy'],
+          context: druidContext,
+          filter,
+          attributeOverrides
+        }, requester)
           .introspect()
           .then((introspectedExternal) => {
             context[source] = introspectedExternal;
-            addExternal(source, introspectedExternal);
+            addExternal(source, introspectedExternal, mode === 'facade');
           });
-      }));
+      }))
+        .then(() => {
+          context['SCHEMATA'] = getSchemataDataset();
+          context['TABLES'] = getTablesDataset();
+          context['COLUMNS'] = getColumnsDataset();
+
+          if (mode === 'query' && !sqlParse.table && !sqlParse.rewrite) {
+            if (!dataSource) throw new Error('must have data source');
+            context['data'] = context[dataSource];
+          }
+
+          if (verbose) console.log(`introspection complete`);
+
+          return context
+        });
     });
 
-    //introspectedExternals
+    return contextPromise.then((context) => {
+      switch (mode) {
+        case 'query':
+          return executeSQLParse(sqlParse, context, timezone)
+            .then((data: PlywoodValue) => {
+              var outputStr: string;
+              if (Dataset.isDataset(data)) {
+                var dataset = <Dataset>data;
+                switch (output) {
+                  case 'json':
+                    outputStr = JSON.stringify(dataset, null, 2);
+                    break;
 
-    //experimental-mysql-facade
+                  case 'csv':
+                    outputStr = dataset.toCSV({ finalLineBreak: 'include' });
+                    break;
 
+                  case 'tsv':
+                    outputStr = dataset.toTSV({ finalLineBreak: 'include' });
+                    break;
 
-    // Get SQL
-    var query: string = parsed['query'];
-    if (query) {
-      if (verbose) {
-        console.log('Received query:');
-        console.log(query);
-        console.log('---------------------------');
+                  case 'flat':
+                    outputStr = JSON.stringify(dataset.flatten(), null, 2);
+                    break;
+
+                  default:
+                    outputStr = 'Unknown output type';
+                    break;
+                }
+              } else {
+                outputStr = String(data);
+              }
+              console.log(outputStr);
+            })
+            .catch((err: Error) => {
+              throw new Error(`There was an error getting the data: ${err.message}`);
+            });
+
+        case 'facade':
+          require('./plyql-mysql-facade').plywoodFacade(mysqlFacadePort, context, timezone, null);
+          return null;
+
+        case 'server':
+          require('./plyql-json-server').plywoodFacade(mysqlFacadePort, context, timezone, null);
+          return null;
+
+        default:
+          throw new Error(`unsupported mode ${mode}`);
       }
 
-      try {
-        var sqlParse = Expression.parseSQL(query, timezone);
-      } catch (e) {
-        throw new Error(`Could not parse query: ${e.message}`);
-      }
+    });
 
-      if (sqlParse.verb && sqlParse.verb !== 'SELECT' && sqlParse.verb !== 'DESCRIBE' && sqlParse.verb !== 'SHOW') {
-        throw new Error(`Unsupported SQL verb ${sqlParse.verb} must be SELECT, DESCRIBE, SHOW, or a raw expression`);
-      }
-    } else {
-      throw new Error("no query found please use --query (-q) flag");
-    }
-
-    var expression = sqlParse.expression;
-
-    if (verbose && expression) {
-      console.log('Parsed query as the following plywood expression (as JSON):');
-      console.log(JSON.stringify(expression, null, 2));
-      console.log('---------------------------');
-    }
-
-    if (sqlParse.rewrite === 'SHOW') {
-      if (!/SHOW +TABLES/i.test(query)) {
-        throw new Error(`Only SHOW TABLES is supported`);
-      }
-
-      return DruidExternal.getSourceList(requester)
-        .then((sources) => {
-          console.log(JSON.stringify(sources, null, 2));
-        })
-        .catch((err: Error) => {
-          throw new Error(`There was an error getting the source list: ${err.message}`);
-        })
-    }
-
-    var dataName = 'data';
-    var dataSource: string;
-    if (parsed['data-source']) {
-      dataSource = parsed['data-source'];
-    } else if (sqlParse.table) {
-      dataName = sqlParse.table;
-      dataSource = sqlParse.table;
-    } else {
-      throw new Error("must have data source");
-    }
-
-    var druidContext: Druid.Context = {
-      timeout
-    };
-
-    if (parsed['skip-cache']) {
-      druidContext.useCache = false;
-      druidContext.populateCache = false;
-    }
-
-    try {
-      var external = External.fromJS({
-        engine: 'druid',
-        version: parsed['druid-version'],
-        dataSource,
-        rollup: parsed['rollup'],
-        timeAttribute,
-        allowEternity: allows.indexOf('eternity') !== -1,
-        allowSelectQueries: allows.indexOf('select') !== -1,
-        introspectionStrategy: parsed['introspection-strategy'],
-        filter,
-        attributeOverrides,
-        context: druidContext
-      }, requester);
-    } catch (e) {
-      throw new Error(`Error making external: ${e.message}`);
-    }
-
-    if (sqlParse.verb === 'DESCRIBE') {
-      return external.introspect()
-        .then((introspectedExternal) => {
-          console.log(JSON.stringify(introspectedExternal.toJS().attributes, null, 2));
-        })
-        .catch((err: Error) => {
-          throw new Error(`There was an error getting the metadata: ${err.message}`);
-        })
-
-    } else if (!sqlParse.verb || sqlParse.verb === 'SELECT') {
-      var context: Datum = {};
-      context[dataName] = external;
-
-      return expression.compute(context, { timezone })
-        .then((data: PlywoodValue) => {
-          var outputStr: string;
-          if (Dataset.isDataset(data)) {
-            var dataset = <Dataset>data;
-            switch (output) {
-              case 'json':
-                outputStr = JSON.stringify(dataset, null, 2);
-                break;
-
-              case 'csv':
-                outputStr = dataset.toCSV({ finalLineBreak: 'include' });
-                break;
-
-              case 'tsv':
-                outputStr = dataset.toTSV({ finalLineBreak: 'include' });
-                break;
-
-              case 'flat':
-                outputStr = JSON.stringify(dataset.flatten(), null, 2);
-                break;
-
-              default:
-                outputStr = 'Unknown output type';
-                break;
-            }
-          } else {
-            outputStr = String(data);
-          }
-          console.log(outputStr);
-        })
-        .catch((err: Error) => {
-          throw new Error(`There was an error getting the data: ${err.message}`);
-        });
-
-    } else {
-      throw new Error(`Unsupported verb ${sqlParse.verb}`);
-
-    }
   });
 }

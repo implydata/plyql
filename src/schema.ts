@@ -1281,7 +1281,7 @@ function getColumnType(type: PlyType): string {
   }
 }
 
-function addExternalToColumns(source: string, external: External): void {
+function addExternalToColumns(source: string, external: External, mysqlTypes: boolean): void {
   var { attributes } = external;
   for (var i = 0; i < attributes.length; i++) {
     var attribute = attributes[i];
@@ -1293,7 +1293,7 @@ function addExternalToColumns(source: string, external: External): void {
       "ORDINAL_POSITION": i + 1,
       "COLUMN_DEFAULT": null,
       "IS_NULLABLE": "YES",
-      "DATA_TYPE": getDataType(attribute.type),
+      "DATA_TYPE": mysqlTypes ? getDataType(attribute.type) : attribute.type,
       "CHARACTER_MAXIMUM_LENGTH": 255,
       "CHARACTER_OCTET_LENGTH": 1020,
       "NUMERIC_PRECISION": null,
@@ -1301,7 +1301,7 @@ function addExternalToColumns(source: string, external: External): void {
       "DATETIME_PRECISION": null,
       "CHARACTER_SET_NAME": "utf8mb4",
       "COLLATION_NAME": "utf8mb4_bin",
-      "COLUMN_TYPE": getColumnType(attribute.type),
+      "COLUMN_TYPE": mysqlTypes ? getColumnType(attribute.type) : attribute.type,
       "COLUMN_KEY": '',
       "EXTRA": '',
       "PRIVILEGES": "select",
@@ -1311,9 +1311,9 @@ function addExternalToColumns(source: string, external: External): void {
   }
 }
 
-export function addExternal(source: string, external: External): void {
+export function addExternal(source: string, external: External, mysqlTypes: boolean): void {
   addExternalToTables(source);
-  addExternalToColumns(source, external);
+  addExternalToColumns(source, external, mysqlTypes);
 }
 
 export function getSchemataDataset() {

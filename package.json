@@ -7,7 +7,9 @@
     "cli",
     "sql",
     "druid",
-    "plywood"
+    "plywood",
+    "facade",
+    "mysql"
   ],
   "author": {
     "name": "Vadim Ogievetsky",
@@ -27,6 +29,7 @@
     "plywood": "0.10.10",
     "plywood-druid-requester": "1.4.3",
     "plywood-mysql-requester": "1.2.2",
+    "mysql2": "1.0.0-rc.1",
     "nopt": "3.0.6",
     "q": "1.4.1"
   },
