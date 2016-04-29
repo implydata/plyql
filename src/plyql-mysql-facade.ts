@@ -4,7 +4,7 @@ import { Expression, Datum, RefExpression, PlywoodValue, Dataset, Set } from "pl
 import { columnToMySQL, MySQLResult, dateToSQL, createMySQLFacade, fallbackMySQLFactory, MySQLParameters } from './mysql-facade';
 import { executeSQLParse } from "./plyql-executor";
 
-export function plywoodFacade(port: number, context: Datum, timezone: Timezone, fallbackURI: string): void {
+export function plyqlMySQLFacade(port: number, context: Datum, timezone: Timezone, fallbackURI: string): void {
   // fallbackURI is something like 'mysql://root:@192.168.99.100/plywood_test';
 
   var fallbackMySQL = fallbackURI ? fallbackMySQLFactory(fallbackURI) : null;
@@ -148,4 +148,4 @@ export function plywoodFacade(port: number, context: Datum, timezone: Timezone, 
     .done();
   });
 
-};
+}

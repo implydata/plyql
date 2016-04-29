@@ -4,6 +4,7 @@ import { Dataset, PlyType } from "plywood";
 import * as mysql from 'mysql2';
 
 const TYPES: Lookup<number> = require('mysql2/lib/constants/types');
+const CHARSETS: Lookup<number> = require('mysql2/lib/constants/charsets');
 
 export function dateToSQL(date: Date): string {
   return date.toISOString()
@@ -33,7 +34,7 @@ export function columnToMySQL(column: any, table: string) {
     orgName: column.name,
     table: table,
     orgTable: table,
-    characterSet: 33, // UTF8_GENERAL_CI
+    characterSet: CHARSETS['UTF8MB4_UNICODE_CI'],
     columnLength: 500,
     columnType: plywoodTypeToMySQL(column.type),
     flags: 32896,
@@ -74,7 +75,7 @@ export function createMySQLFacade(port: number, queryProcessor: MySQLQueryProces
       serverVersion: '5.7.11',
       connectionId,
       statusFlags: 2,
-      characterSet: 8,
+      characterSet: CHARSETS['UTF8MB4_UNICODE_CI'],
       capabilityFlags: 0xffffff
     });
 

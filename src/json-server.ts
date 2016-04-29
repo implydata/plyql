@@ -1,4 +1,5 @@
 /// <reference path="../typings/express/express.d.ts" />
+/// <reference path="../typings/body-parser/body-parser.d.ts" />
 /// <reference path="../typings/compression/compression.d.ts" />
 
 import * as Q from 'q';
@@ -6,6 +7,7 @@ import { Timezone } from "chronoshift";
 import * as http from 'http';
 import * as express from 'express';
 import { Request, Response } from 'express';
+import * as bodyParser from 'body-parser';
 import * as compress from 'compression';
 
 export interface JSONParameters {
@@ -22,6 +24,11 @@ export function createJSONServer(port: number, queryProcessor: JSONQueryProcesso
 
   app.use(compress());
 
+  app.get('/health', (req: Request, res: Response) => {
+    res.send(`I am healthy @ ${new Date().toISOString()}`);
+  });
+
+  app.use(bodyParser.json());
   app.post('/plyql', (req: Request, res: Response) => {
     var { sql } = req.body;
 
@@ -32,10 +39,6 @@ export function createJSONServer(port: number, queryProcessor: JSONQueryProcesso
 
     console.log(`Got SQL: ${sql}`);
     queryProcessor({ sql }, res);
-  });
-
-  app.get('/health', (req: Request, res: Response) => {
-    res.send(`I am healthy @ ${new Date().toISOString()}`);
   });
 
   var server = http.createServer(app);
@@ -64,7 +67,7 @@ export function createJSONServer(port: number, queryProcessor: JSONQueryProcesso
 
   server.on('listening', () => {
     var address = server.address();
-    console.log('PlyQl server listening on ' + address.port);
+    console.log('PlyQL server listening on port: ' + address.port);
   });
 
   app.set('port', port);

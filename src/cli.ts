@@ -2,11 +2,14 @@
 /// <reference path="../typings/nopt/nopt.d.ts" />
 /// <reference path="../node_modules/plywood/build/plywood.d.ts" />
 /// <reference path="../node_modules/plywood-druid-requester/build/plywood-druid-requester.d.ts" />
+/// <reference path="../typings/cli-table2/cli-table2.d.ts" />
 
 import * as fs from 'fs';
 import * as path from "path";
 import * as Q from 'q';
 import * as nopt from "nopt";
+
+import * as Table from 'cli-table2';
 
 import { WallTime, Timezone, Duration, parseInterval } from "chronoshift";
 if (!WallTime.rules) {
@@ -34,7 +37,7 @@ Examples:
 
   plyql -h 10.20.30.40 -q 'SELECT MAX(__time) AS maxTime FROM twitterstream'
 
-  plyql -h 10.20.30.40 -d twitterstream -i P5D -q \
+  plyql -h 10.20.30.40 -d twitterstream -i P5D -q \\
     'SELECT SUM(tweet_length) as TotalTweetLength WHERE first_hashtag = "#imply"'
 
 Arguments:
@@ -46,14 +49,15 @@ Arguments:
   -d,  --data-source  use this data source for the query (supersedes FROM clause)
   -i,  --interval     add (AND) a __time filter between NOW-INTERVAL and NOW
   -tz, --timezone     the default timezone  
-  -o,  --output       the output format. Possible values: json (default), csv, tsv, flat
+  -o,  --output       the output format. Possible values: table (default), json, csv, tsv, flat
   -t,  --timeout      the time before a query is timed out in ms (default: 180000)
   -r,  --retry        the number of tries a query should be attempted on error, 0 = unlimited, (default: 2)
   -c,  --concurrent   the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
        --rollup       use rollup mode [COUNT() -> SUM(count)]
        
   -q,  --query        the query to run
-       --experimental-mysql-facade  [Experimental] the port on which to start the MySQL facade server
+       --json-server  the port on which to start the json server
+       --experimental-mysql-facade [Experimental] the port on which to start the MySQL facade server
 
        --druid-version            Assume this is the Druid version and do not query it
        --skip-cache               disable Druid caching
@@ -90,6 +94,7 @@ export interface CommandLineArguments {
   "data-source"?: string;
   "help"?: boolean;
   "query"?: string;
+  "json-server"?: number;
   "experimental-mysql-facade"?: number;
   "interval"?: string;
   "timezone"?: string;
@@ -120,6 +125,7 @@ export function parseArguments(): CommandLineArguments {
       "data-source": String,
       "help": Boolean,
       "query": String,
+      "json-server": Number,
       "experimental-mysql-facade": Number,
       "interval": String,
       "timezone": String,
@@ -190,9 +196,9 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
     }
 
     // Get output
-    var output: string = (parsed['output'] || 'json').toLowerCase();
-    if (output !== 'json' && output !== 'csv' && output !== 'tsv' && output !== 'flat') {
-      throw new Error(`output must be one of json, csv, tsv, or flat (is ${output}})`);
+    var output: string = (parsed['output'] || 'table').toLowerCase();
+    if (output !== 'table' && output !== 'json' && output !== 'csv' && output !== 'tsv' && output !== 'flat') {
+      throw new Error(`output must be one of table, json, csv, tsv, or flat (is ${output})`);
     }
 
     // Get host
@@ -237,9 +243,13 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
     var dataSource = parsed['data-source'] || null;
 
     // Get SQL
+    if (Number(!!parsed['query']) + Number(!!parsed['json-server']) + Number(!!parsed['experimental-mysql-facade']) > 1) {
+      throw new Error("must set exactly one of --query (-q), --json-server, or --experimental-mysql-facade");
+    }
+
     var mode: Mode;
     var sqlParse: SQLParse;
-    var mysqlFacadePort: number;
+    var serverPort: number;
     if (parsed['query']) {
       mode = 'query';
       let query: string = parsed['query'];
@@ -265,12 +275,16 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
         console.log('---------------------------');
       }
 
+    } else if (parsed['json-server']) {
+      mode = 'server';
+      serverPort = parsed['json-server'];
+
     } else if (parsed['experimental-mysql-facade']) {
       mode = 'facade';
-      mysqlFacadePort = parsed['experimental-mysql-facade'];
+      serverPort = parsed['experimental-mysql-facade'];
 
     } else {
-      throw new Error("must have --query (-q) or --experimental-mysql-facade flag set");
+      throw new Error("must set one of --query (-q), --json-server, or --experimental-mysql-facade");
     }
 
     // ============== End parse ===============
@@ -322,8 +336,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
           context['TABLES'] = getTablesDataset();
           context['COLUMNS'] = getColumnsDataset();
 
-          if (mode === 'query' && !sqlParse.table && !sqlParse.rewrite) {
-            if (!dataSource) throw new Error('must have data source');
+          if (mode === 'query' && dataSource && !sqlParse.table && !sqlParse.rewrite) {
             context['data'] = context[dataSource];
           }
 
@@ -342,6 +355,22 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
               if (Dataset.isDataset(data)) {
                 var dataset = <Dataset>data;
                 switch (output) {
+                  case 'table':
+                    var columns = dataset.getColumns();
+                    var flatData = dataset.flatten();
+                    var columnNames = columns.map(c => c.name);
+
+                    var table = new Table({
+                      head: columnNames
+                    });
+
+                    for (var flatDatum of flatData) {
+                      table.push(columnNames.map(cn => flatDatum[cn]));
+                    }
+
+                    outputStr = table.toString();
+                    break;
+
                   case 'json':
                     outputStr = JSON.stringify(dataset, null, 2);
                     break;
@@ -372,11 +401,11 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
             });
 
         case 'facade':
-          require('./plyql-mysql-facade').plywoodFacade(mysqlFacadePort, context, timezone, null);
+          require('./plyql-mysql-facade').plyqlMySQLFacade(serverPort, context, timezone, null);
           return null;
 
         case 'server':
-          require('./plyql-json-server').plywoodFacade(mysqlFacadePort, context, timezone, null);
+          require('./plyql-json-server').plyqlJSONServer(serverPort, context, timezone, null);
           return null;
 
         default:
