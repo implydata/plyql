@@ -41,33 +41,33 @@ Examples:
 
 Arguments:
 
-       --help         print this help message
-       --version      display the version number
-  -v,  --verbose      display the queries that are being made
-  -h,  --host         the host to connect to
-  -d,  --data-source  use this data source for the query (supersedes FROM clause)
-  -i,  --interval     add (AND) a __time filter between NOW-INTERVAL and NOW
-  -tz, --timezone     the default timezone  
-  -o,  --output       the output format. Possible values: table (default), json, csv, tsv, flat
-  -t,  --timeout      the time before a query is timed out in ms (default: 180000)
-  -r,  --retry        the number of tries a query should be attempted on error, 0 = unlimited, (default: 2)
-  -c,  --concurrent   the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
-       --rollup       use rollup mode [COUNT() -> SUM(count)]
-       
-  -q,  --query        the query to run
-       --json-server  the port on which to start the json server
-       --experimental-mysql-gateway [Experimental] the port on which to start the MySQL gateway server
+      --help         print this help message
+      --version      display the version number
+  -v, --verbose      display the queries that are being made
+  -h, --host         the host to connect to
+  -d, --data-source  use this data source for the query (supersedes FROM clause)
+  -i, --interval     add (AND) a __time filter between NOW-INTERVAL and NOW
+  -Z, --timezone     the default timezone
+  -o, --output       the output format. Possible values: table (default), json, csv, tsv, flat
+  -t, --timeout      the time before a query is timed out in ms (default: 180000)
+  -r, --retry        the number of tries a query should be attempted on error, 0 = unlimited, (default: 2)
+  -c, --concurrent   the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
+      --rollup       use rollup mode [COUNT() -> SUM(count)]
 
-       --druid-version            Assume this is the Druid version and do not query it
-       --skip-cache               disable Druid caching
-       --introspection-strategy   Druid introspection strategy
-           Possible values:
-           * segment-metadata-fallback - (default) use the segmentMetadata and fallback to GET route
-           * segment-metadata-only     - only use the segmentMetadata query
-           * datasource-get            - only use GET /druid/v2/datasources/DATASOURCE route
+  -q, --query        the query to run
+      --json-server  the port on which to start the json server
+      --experimental-mysql-gateway [Experimental] the port on which to start the MySQL gateway server
 
-  -fu, --force-unique     force a column to be interpreted as a hyperLogLog uniques
-  -fh, --force-histogram  force a column to be interpreted as an approximate histogram
+      --druid-version            Assume this is the Druid version and do not query it
+      --skip-cache               disable Druid caching
+      --introspection-strategy   Druid introspection strategy
+          Possible values:
+          * segment-metadata-fallback - (default) use the segmentMetadata and fallback to GET route
+          * segment-metadata-only     - only use the segmentMetadata query
+          * datasource-get            - only use GET /druid/v2/datasources/DATASOURCE route
+
+      --force-unique     force a column to be interpreted as a hyperLogLog uniques
+      --force-histogram  force a column to be interpreted as an approximate histogram
 `
   )
 }
@@ -137,17 +137,16 @@ export function parseArguments(): CommandLineArguments {
       "introspection-strategy": String
     },
     {
-      "h": ["--host"],
-      "q": ["--query"],
       "v": ["--verbose"],
+      "h": ["--host"],
       "d": ["--data-source"],
       "i": ["--interval"],
-      "tz": ["--timezone"],
+      "Z": ["--timezone"],
+      "o": ["--output"],
+      "t": ["--timeout"],
       "r": ["--retry"],
       "c": ["--concurrent"],
-      "o": ["--output"],
-      "fu": ["--force-unique"],
-      "fh": ["--force-histogram"]
+      "q": ["--query"]
     },
     process.argv
   );
