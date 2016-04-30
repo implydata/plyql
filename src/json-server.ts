@@ -33,12 +33,17 @@ export function createJSONServer(port: number, queryProcessor: JSONQueryProcesso
     var { sql } = req.body;
 
     if (typeof sql !== "string") {
-      res.status(400).send({ error: "'sql' must be a string" });
+      res.status(400).json({ error: "'sql' must be a string" });
       return;
     }
 
     console.log(`Got SQL: ${sql}`);
     queryProcessor({ sql }, res);
+  });
+
+  app.use((err: any, req: Request, res: Response, next: Function) => {
+    res.status(err.status || 500);
+    res.json({ error: err.message });
   });
 
   var server = http.createServer(app);

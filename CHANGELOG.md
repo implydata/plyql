@@ -7,4 +7,5 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Started this changelog
 - Changed default output mode to `table`
 - Added server mode
-- Added MySQL facade
+- Added MySQL gateway
+- Removed --allow (-a) option it is always set now

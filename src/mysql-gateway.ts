@@ -60,10 +60,10 @@ export interface MySQLQueryProcessor {
   (parameters: MySQLParameters, conn: any): void;
 }
 
-export function createMySQLFacade(port: number, queryProcessor: MySQLQueryProcessor) {
+export function createMySQLGateway(port: number, queryProcessor: MySQLQueryProcessor) {
   var server = mysql.createServer();
   server.listen(port);
-  console.log(`MySQL Facade listening on port: ${port}`);
+  console.log(`MySQL Gateway listening on port: ${port}`);
 
   var connectionId = 0;
   server.on('connection', function(conn) {

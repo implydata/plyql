@@ -7,9 +7,9 @@ const TEST_PORT = 13307;
 var child;
 var connection;
 
-describe('mysql-facade', () => {
+describe('mysql-gateway', () => {
   before((done) => {
-    child = spawn('bin/plyql', `-h 192.168.99.100 -i P2Y --experimental-mysql-facade ${TEST_PORT}`.split(' '));
+    child = spawn('bin/plyql', `-h 192.168.99.100 -i P2Y --experimental-mysql-gateway ${TEST_PORT}`.split(' '));
 
     child.stderr.on('data', (data) => {
       throw new Error(data.toString());
@@ -24,6 +24,11 @@ describe('mysql-facade', () => {
           user: 'root',
           password: ''
         });
+
+        connection.on('error', (err) => {
+          // nothing to do here, have a noop function to prevent the error form being thrown
+        });
+
         done();
       }
     });

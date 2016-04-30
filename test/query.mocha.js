@@ -8,13 +8,12 @@ describe('query', () => {
   it('does basic query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -q 'SELECT 1+1'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(stdout).to.equal(sane`
+      expect(stdout).to.contain(sane`
         ┌─────┐
         │ 1+1 │
         ├─────┤
         │ 2   │
         └─────┘
-      
       `);
       expect(stderr).to.equal('');
       testComplete();
@@ -37,17 +36,14 @@ describe('query', () => {
   it('does a SELECT query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -a eternity -q 'SELECT page, Count(*) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(stdout).to.equal(sane`
+      expect(stdout).to.contain(sane`
         ┌──────────────────────────────────────────────────────────┬───────┐
         │ page                                                     │ Count │
         ├──────────────────────────────────────────────────────────┼───────┤
         │ User:Cyde/List of candidates for speedy deletion/Subpage │ 255   │
-        ├──────────────────────────────────────────────────────────┼───────┤
         │ Jeremy Corbyn                                            │ 238   │
-        ├──────────────────────────────────────────────────────────┼───────┤
         │ Wikipedia:Administrators' noticeboard/Incidents          │ 228   │
         └──────────────────────────────────────────────────────────┴───────┘
-        
       `);
       expect(stderr).to.equal('');
       testComplete();

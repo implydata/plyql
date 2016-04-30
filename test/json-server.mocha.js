@@ -1,12 +1,10 @@
 const { expect } = require('chai');
 const { spawn } = require('child_process');
-const mysql = require('mysql2');
 const request = require('request');
 
 const TEST_PORT = 18082;
 
 var child;
-var connection;
 
 describe('json-server', () => {
   before((done) => {

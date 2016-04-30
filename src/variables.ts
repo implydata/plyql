@@ -496,7 +496,7 @@ var variablesData: VariableRow[] = [
   { "VARIABLE_NAME": "unique_checks", "VARIABLE_VALUE": "ON" },
   { "VARIABLE_NAME": "updatable_views_with_limit", "VARIABLE_VALUE": "YES" },
   { "VARIABLE_NAME": "version", "VARIABLE_VALUE": "5.7.11" },
-  { "VARIABLE_NAME": "version_comment", "VARIABLE_VALUE": "MySQL PlyQL Facade (Apache 2.0)" },
+  { "VARIABLE_NAME": "version_comment", "VARIABLE_VALUE": "MySQL PlyQL Gateway (Apache 2.0)" },
   { "VARIABLE_NAME": "version_compile_machine", "VARIABLE_VALUE": "x86_64" },
   { "VARIABLE_NAME": "version_compile_os", "VARIABLE_VALUE": "Linux" },
   { "VARIABLE_NAME": "wait_timeout", "VARIABLE_VALUE": "28800" }

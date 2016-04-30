@@ -1,15 +1,15 @@
 import * as Q from 'q';
 import { Timezone } from "chronoshift";
 import { Expression, Datum, RefExpression, PlywoodValue, Dataset, Set } from "plywood";
-import { columnToMySQL, MySQLResult, dateToSQL, createMySQLFacade, fallbackMySQLFactory, MySQLParameters } from './mysql-facade';
+import { columnToMySQL, MySQLResult, dateToSQL, createMySQLGateway, fallbackMySQLFactory, MySQLParameters } from './mysql-gateway';
 import { executeSQLParse } from "./plyql-executor";
 
-export function plyqlMySQLFacade(port: number, context: Datum, timezone: Timezone, fallbackURI: string): void {
+export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezone, fallbackURI: string): void {
   // fallbackURI is something like 'mysql://root:@192.168.99.100/plywood_test';
 
   var fallbackMySQL = fallbackURI ? fallbackMySQLFactory(fallbackURI) : null;
 
-  createMySQLFacade(port, (parameters: MySQLParameters, conn: any): void => {
+  createMySQLGateway(port, (parameters: MySQLParameters, conn: any): void => {
     var { sql, connectionId } = parameters;
     Q.fcall(() => {
       var match: string[];

@@ -1,6 +1,6 @@
 import { Dataset, PlyType, External } from "plywood";
 
-const DB_NAME = 'plywood_test';
+const DB_NAME = 'plyql1';
 
 interface SchemataRow {
   "CATALOG_NAME": string;
@@ -1305,7 +1305,7 @@ function addExternalToColumns(source: string, external: External, mysqlTypes: bo
       "COLUMN_KEY": '',
       "EXTRA": '',
       "PRIVILEGES": "select",
-      "COLUMN_COMMENT": '',
+      "COLUMN_COMMENT": attribute.special || '',
       "GENERATION_EXPRESSION": ''
     });
   }

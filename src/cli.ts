@@ -2,14 +2,13 @@
 /// <reference path="../typings/nopt/nopt.d.ts" />
 /// <reference path="../node_modules/plywood/build/plywood.d.ts" />
 /// <reference path="../node_modules/plywood-druid-requester/build/plywood-druid-requester.d.ts" />
-/// <reference path="../typings/cli-table2/cli-table2.d.ts" />
+/// <reference path="../typings/table/table.d.ts" />
 
 import * as fs from 'fs';
 import * as path from "path";
 import * as Q from 'q';
 import * as nopt from "nopt";
-
-import * as Table from 'cli-table2';
+import table, { getBorderCharacters } from 'table';
 
 import { WallTime, Timezone, Duration, parseInterval } from "chronoshift";
 if (!WallTime.rules) {
@@ -57,7 +56,7 @@ Arguments:
        
   -q,  --query        the query to run
        --json-server  the port on which to start the json server
-       --experimental-mysql-facade [Experimental] the port on which to start the MySQL facade server
+       --experimental-mysql-gateway [Experimental] the port on which to start the MySQL gateway server
 
        --druid-version            Assume this is the Druid version and do not query it
        --skip-cache               disable Druid caching
@@ -69,10 +68,6 @@ Arguments:
 
   -fu, --force-unique     force a column to be interpreted as a hyperLogLog uniques
   -fh, --force-histogram  force a column to be interpreted as an approximate histogram
-
-  -a,  --allow        enable a behaviour that is turned off by default
-           eternity     allow queries not filtered on time
-           select       allow 'select' queries
 `
   )
 }
@@ -95,7 +90,7 @@ export interface CommandLineArguments {
   "help"?: boolean;
   "query"?: string;
   "json-server"?: number;
-  "experimental-mysql-facade"?: number;
+  "experimental-mysql-gateway"?: number;
   "interval"?: string;
   "timezone"?: string;
   "version"?: boolean;
@@ -104,7 +99,6 @@ export interface CommandLineArguments {
   "retry"?: number;
   "concurrent"?: number;
   "output"?: string;
-  "allow"?: string[];
   "force-unique"?: string[];
   "force-histogram"?: string[];
   "druid-version"?: string;
@@ -115,7 +109,7 @@ export interface CommandLineArguments {
   argv?: any;
 }
 
-type Mode = 'query' | 'server' | 'facade';
+type Mode = 'query' | 'server' | 'gateway';
 
 export function parseArguments(): CommandLineArguments {
   return <any>nopt(
@@ -126,7 +120,7 @@ export function parseArguments(): CommandLineArguments {
       "help": Boolean,
       "query": String,
       "json-server": Number,
-      "experimental-mysql-facade": Number,
+      "experimental-mysql-gateway": Number,
       "interval": String,
       "timezone": String,
       "version": Boolean,
@@ -135,7 +129,6 @@ export function parseArguments(): CommandLineArguments {
       "retry": Number,
       "concurrent": Number,
       "output": String,
-      "allow": [String, Array],
       "force-unique": [String, Array],
       "force-histogram": [String, Array],
       "druid-version": String,
@@ -150,7 +143,6 @@ export function parseArguments(): CommandLineArguments {
       "d": ["--data-source"],
       "i": ["--interval"],
       "tz": ["--timezone"],
-      "a": ["--allow"],
       "r": ["--retry"],
       "c": ["--concurrent"],
       "o": ["--output"],
@@ -175,14 +167,6 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
 
     var verbose: boolean = parsed['verbose'];
     if (verbose) printVersion();
-
-    // Get allow
-    var allows: string[] = parsed['allow'] || [];
-    for (let allow of allows) {
-      if (!(allow === 'eternity' || allow === 'select')) {
-        throw new Error(`Unexpected allow '${allow}'`);
-      }
-    }
 
     // Get forced attribute overrides
     var attributeOverrides: AttributeJSs = [];
@@ -243,8 +227,8 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
     var dataSource = parsed['data-source'] || null;
 
     // Get SQL
-    if (Number(!!parsed['query']) + Number(!!parsed['json-server']) + Number(!!parsed['experimental-mysql-facade']) > 1) {
-      throw new Error("must set exactly one of --query (-q), --json-server, or --experimental-mysql-facade");
+    if (Number(!!parsed['query']) + Number(!!parsed['json-server']) + Number(!!parsed['experimental-mysql-gateway']) > 1) {
+      throw new Error("must set exactly one of --query (-q), --json-server, or --experimental-mysql-gateway");
     }
 
     var mode: Mode;
@@ -279,12 +263,12 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       mode = 'server';
       serverPort = parsed['json-server'];
 
-    } else if (parsed['experimental-mysql-facade']) {
-      mode = 'facade';
-      serverPort = parsed['experimental-mysql-facade'];
+    } else if (parsed['experimental-mysql-gateway']) {
+      mode = 'gateway';
+      serverPort = parsed['experimental-mysql-gateway'];
 
     } else {
-      throw new Error("must set one of --query (-q), --json-server, or --experimental-mysql-facade");
+      throw new Error("must set one of --query (-q), --json-server, or --experimental-mysql-gateway");
     }
 
     // ============== End parse ===============
@@ -318,8 +302,8 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
           dataSource: source,
           rollup: parsed['rollup'],
           timeAttribute,
-          allowEternity: mode === 'query' ? (allows.indexOf('eternity') !== -1) : false,
-          allowSelectQueries: mode === 'query' ? (allows.indexOf('select') !== -1) : true,
+          allowEternity: true,
+          allowSelectQueries: true,
           introspectionStrategy: parsed['introspection-strategy'],
           context: druidContext,
           filter,
@@ -328,7 +312,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
           .introspect()
           .then((introspectedExternal) => {
             context[source] = introspectedExternal;
-            addExternal(source, introspectedExternal, mode === 'facade');
+            addExternal(source, introspectedExternal, mode === 'gateway');
           });
       }))
         .then(() => {
@@ -360,15 +344,12 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
                     var flatData = dataset.flatten();
                     var columnNames = columns.map(c => c.name);
 
-                    var table = new Table({
-                      head: columnNames
+                    var tableData = [columnNames].concat(flatData.map(flatDatum => columnNames.map(cn => flatDatum[cn])));
+
+                    outputStr = table(tableData, {
+                      border: getBorderCharacters('norc'),
+                      drawHorizontalLine: (index: number, size: number) => index <= 1 || index === size
                     });
-
-                    for (var flatDatum of flatData) {
-                      table.push(columnNames.map(cn => flatDatum[cn]));
-                    }
-
-                    outputStr = table.toString();
                     break;
 
                   case 'json':
@@ -400,8 +381,8 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
               throw new Error(`There was an error getting the data: ${err.message}`);
             });
 
-        case 'facade':
-          require('./plyql-mysql-facade').plyqlMySQLFacade(serverPort, context, timezone, null);
+        case 'gateway':
+          require('./plyql-mysql-gateway').plyqlMySQLGateway(serverPort, context, timezone, null);
           return null;
 
         case 'server':
