@@ -5,6 +5,32 @@ import * as mysql from 'mysql2';
 
 const TYPES: Lookup<number> = require('mysql2/lib/constants/types');
 const CHARSETS: Lookup<number> = require('mysql2/lib/constants/charsets');
+const CLIENT: Lookup<number> = require('mysql2/lib/constants/client');
+
+const capabilityFlags = 0
+  | CLIENT['LONG_PASSWORD']           /* new more secure passwords */
+  | CLIENT['FOUND_ROWS']              /* found instead of affected rows */
+  | CLIENT['LONG_FLAG']               /* get all column flags */
+  | CLIENT['CONNECT_WITH_DB']         /* one can specify db on connect */
+  | CLIENT['NO_SCHEMA']               /* don't allow database.table.column */
+  | CLIENT['COMPRESS']                /* can use compression protocol */
+  | CLIENT['ODBC']                    /* odbc client */
+  | CLIENT['LOCAL_FILES']             /* can use LOAD DATA LOCAL */
+  | CLIENT['IGNORE_SPACE']            /* ignore spaces before '' */
+  | CLIENT['PROTOCOL_41']             /* new 4.1 protocol */
+  | CLIENT['INTERACTIVE']             /* this is an interactive client */
+  | CLIENT['SSL']                     /* switch to ssl after handshake */
+  | CLIENT['IGNORE_SIGPIPE']          /* IGNORE sigpipes */
+  | CLIENT['TRANSACTIONS']            /* client knows about transactions */
+  | CLIENT['RESERVED']                /* old flag for 4.1 protocol  */
+  | CLIENT['SECURE_CONNECTION']       /* new 4.1 authentication */
+  //| CLIENT['MULTI_STATEMENTS']        /* enable/disable multi-stmt support */
+  //| CLIENT['MULTI_RESULTS']           /* enable/disable multi-results */
+  //| CLIENT['PS_MULTI_RESULTS']        /* multi-results in ps-protocol */
+  | CLIENT['PLUGIN_AUTH']             /* client supports plugin authentication */
+  | CLIENT['SSL_VERIFY_SERVER_CERT']
+  //| CLIENT['REMEMBER_OPTIONS']
+  ;
 
 export function dateToSQL(date: Date): string {
   return date.toISOString()
@@ -76,12 +102,7 @@ export function createMySQLGateway(port: number, queryProcessor: MySQLQueryProce
       connectionId,
       statusFlags: 2,
       characterSet: CHARSETS['UTF8MB4_UNICODE_CI'],
-      capabilityFlags: 0xffffff
-    });
-
-    conn.on('field_list', (table, fields) => {
-      console.log('field list:', table, fields);
-      conn.writeEof();
+      capabilityFlags
     });
 
     conn.on('query', (sql) => {

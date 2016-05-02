@@ -72,4 +72,20 @@ describe('query', () => {
     });
   });
 
+  it('does timezone conversion query', (testComplete) => {
+    exec(`bin/plyql -h ${druidHost} -Z "America/Los_Angeles" -o json -q 'SELECT TIMESTAMP("2016-04-04T01:02:03") AS T'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(JSON.parse(stdout)).to.deep.equal([
+        {
+          "T": {
+            "type": "TIME",
+            "value": "2016-04-04T08:02:03.000Z"
+          }
+        }
+      ]);
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
 });
