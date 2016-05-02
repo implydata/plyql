@@ -29,7 +29,7 @@
     "chronoshift": "0.4.2",
     "compression": "1.6.1",
     "express": "4.13.4",
-    "mysql2": "git://github.com/vogievetsky/node-mysql2.git#7d8bc72",
+    "mysql2": "git://github.com/vogievetsky/node-mysql2.git#0d65b49",
     "nopt": "3.0.6",
     "plywood": "0.10.11",
     "plywood-druid-requester": "1.4.3",

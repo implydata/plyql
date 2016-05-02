@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const { sane } = require('./utils.js');
-const exec = require('child_process').exec;
+const { exec } = require('child_process');
 
 const druidHost = '192.168.99.100';
 

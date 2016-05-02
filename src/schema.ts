@@ -27,7 +27,6 @@ var schemataData: SchemataRow[] = [
   }
 ];
 
-
 interface TablesRow {
   TABLE_CATALOG: string;
   TABLE_SCHEMA: string;

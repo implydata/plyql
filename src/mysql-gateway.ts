@@ -13,7 +13,7 @@ const capabilityFlags = 0
   | CLIENT['LONG_FLAG']               /* get all column flags */
   | CLIENT['CONNECT_WITH_DB']         /* one can specify db on connect */
   | CLIENT['NO_SCHEMA']               /* don't allow database.table.column */
-  | CLIENT['COMPRESS']                /* can use compression protocol */
+  //| CLIENT['COMPRESS']                /* can use compression protocol */
   | CLIENT['ODBC']                    /* odbc client */
   | CLIENT['LOCAL_FILES']             /* can use LOAD DATA LOCAL */
   | CLIENT['IGNORE_SPACE']            /* ignore spaces before '' */

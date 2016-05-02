@@ -4,6 +4,18 @@ import { Expression, Datum, RefExpression, PlywoodValue, Dataset, Set } from "pl
 import { columnToMySQL, MySQLResult, dateToSQL, createMySQLGateway, fallbackMySQLFactory, MySQLParameters } from './mysql-gateway';
 import { executeSQLParse } from "./plyql-executor";
 
+function printError(err: Error): void {
+  console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+  console.log('Failed to use Plywood.');
+  console.log('If you believe this query should work please create an issue on PlyQL and include this section');
+  console.log('Issue url: https://github.com/implydata/plyql/issues');
+  console.log('Message:');
+  console.log(err.message);
+  console.log('Stack:');
+  console.log((err as any).stack);
+  console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+}
+
 export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezone, fallbackURI: string): void {
   // fallbackURI is something like 'mysql://root:@192.168.99.100/plywood_test';
 
@@ -16,11 +28,16 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
 
       // Deal with "SELECT @@blah LIMIT 1" by de-sugaring
       sql = sql.replace(
-        /^\s*SELECT\s+@@(\w+)/i,
+        /^\s*SELECT\s+@@(?:global\.|session\.)?(\w+)/i,
         'SELECT VARIABLE_NAME AS Variable_name, VARIABLE_VALUE AS Value FROM GLOBAL_VARIABLES WHERE VARIABLE_NAME = "$1"'
       );
 
-      // Parse connection id
+      // Hack, treat USE `blah` as SET ... (ignores it)
+      if (match = sql.match(/USE\s+`/i)) {
+        sql = "SET NAMES 'utf8'";
+      }
+
+      // Handle connection id query
       if (match = sql.match(/SELECT\s+(CONNECTION_ID\(\s*\))/i)) {
         return {
           type: 'connectionId',
@@ -31,6 +48,7 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
       try {
         var sqlParse = Expression.parseSQL(sql);
       } catch (e) {
+        printError(e);
         return {
           type: 'error',
           code: 1064, // You have an error in your SQL syntax
@@ -129,15 +147,7 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
       }
     })
     .catch((err: Error) => {
-      console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
-      console.log('Failed to use Plywood.');
-      console.log('If you believe this query should work please create an issue on PlyQL and include this section');
-      console.log('Issue url: https://github.com/implydata/plyql/issues');
-      console.log('Message:');
-      console.log(err.message);
-      console.log('Stack:');
-      console.log((err as any).stack);
-      console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+      printError(err);
 
       if (fallbackMySQL) {
         fallbackMySQL(sql, conn);
