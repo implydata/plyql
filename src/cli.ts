@@ -282,52 +282,57 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
 
     // ============== Do introspect ===============
 
-    var sourceList = dataSource ? Q([dataSource]) : DruidExternal.getSourceList(requester);
+    var contextPromise = DruidExternal.getVersion(requester)
+      .then(druidVersion => {
+        var onlyDataSource = dataSource || (sqlParse ? sqlParse.table : null);
+        var sourceList = onlyDataSource ? Q([onlyDataSource]) : DruidExternal.getSourceList(requester);
 
-    var contextPromise = sourceList.then((sources) => {
-      if (verbose) {
-        console.log(`Found sources [${sources.join(',')}]`);
-      }
-
-      var context: Datum = {};
-
-      var variablesDataset = getVariablesDataset();
-      context['GLOBAL_VARIABLES'] = variablesDataset;
-      context['SESSION_VARIABLES'] = variablesDataset;
-
-      return Q.all(sources.map(source => {
-        return External.fromJS({
-          engine: 'druid',
-          dataSource: source,
-          rollup: parsed['rollup'],
-          timeAttribute,
-          allowEternity: true,
-          allowSelectQueries: true,
-          introspectionStrategy: parsed['introspection-strategy'],
-          context: druidContext,
-          filter,
-          attributeOverrides
-        }, requester)
-          .introspect()
-          .then((introspectedExternal) => {
-            context[source] = introspectedExternal;
-            addExternal(source, introspectedExternal, mode === 'gateway');
-          });
-      }))
-        .then(() => {
-          context['SCHEMATA'] = getSchemataDataset();
-          context['TABLES'] = getTablesDataset();
-          context['COLUMNS'] = getColumnsDataset();
-
-          if (mode === 'query' && dataSource && !sqlParse.table && !sqlParse.rewrite) {
-            context['data'] = context[dataSource];
+        return sourceList.then((sources) => {
+          if (verbose) {
+            console.log(`Found sources [${sources.join(',')}]`);
           }
 
-          if (verbose) console.log(`introspection complete`);
+          var context: Datum = {};
 
-          return context
+          var variablesDataset = getVariablesDataset();
+          context['GLOBAL_VARIABLES'] = variablesDataset;
+          context['SESSION_VARIABLES'] = variablesDataset;
+
+          return Q.all(sources.map(source => {
+            return External.fromJS({
+              engine: 'druid',
+              version: druidVersion,
+              dataSource: source,
+              rollup: parsed['rollup'],
+              timeAttribute,
+              allowEternity: true,
+              allowSelectQueries: true,
+              introspectionStrategy: parsed['introspection-strategy'],
+              context: druidContext,
+              filter,
+              attributeOverrides
+            }, requester)
+              .introspect()
+              .then((introspectedExternal) => {
+                context[source] = introspectedExternal;
+                addExternal(source, introspectedExternal, mode === 'gateway');
+              });
+          }))
+            .then(() => {
+              context['SCHEMATA'] = getSchemataDataset();
+              context['TABLES'] = getTablesDataset();
+              context['COLUMNS'] = getColumnsDataset();
+
+              if (mode === 'query' && dataSource && !sqlParse.table && !sqlParse.rewrite) {
+                context['data'] = context[dataSource];
+              }
+
+              if (verbose) console.log(`introspection complete`);
+
+              return context
+            });
         });
-    });
+      });
 
     return contextPromise.then((context) => {
       switch (mode) {

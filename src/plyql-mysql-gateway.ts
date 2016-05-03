@@ -115,6 +115,8 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
                 v = dateToSQL(v);
               } else if (Set.isSet(v)) {
                 v = v.toString();
+              } else if (typeof v === 'boolean') {
+                v = Number(v);
               }
               newRow[k] = v;
             }

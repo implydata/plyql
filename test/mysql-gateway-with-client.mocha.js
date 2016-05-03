@@ -35,6 +35,24 @@ describe('mysql-gateway-with-client', () => {
     });
   });
 
+  it('does basic query with NULL', (testComplete) => {
+    exec(`mysql --host=127.0.0.1 --port=${TEST_PORT} -e 'SELECT NULL as LOL'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.contain('NULL');
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
+  it('does basic query with boolean', (testComplete) => {
+    exec(`mysql --host=127.0.0.1 --port=${TEST_PORT} -e 'SELECT 2=2'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.contain('1');
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
   it('does a SELECT query', (testComplete) => {
     exec(`mysql --host=127.0.0.1 --port=${TEST_PORT} -e 'SELECT page, Count(*) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);

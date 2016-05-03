@@ -41,6 +41,7 @@ export function dateToSQL(date: Date): string {
 
 export function plywoodTypeToMySQL(type: PlyType) {
   switch (type) {
+    case 'NULL': return TYPES['VAR_STRING'];
     case 'BOOLEAN': return TYPES['TINY'];
     case 'STRING':
     case 'SET/STRING': return TYPES['VAR_STRING'];
