@@ -80,6 +80,32 @@ describe('mysql-gateway', () => {
     });
   });
 
+  it('works with normal variable query', (testComplete) => {
+    connection.query(`SELECT VARIABLE_NAME AS Variable_name, VARIABLE_VALUE AS Value FROM GLOBAL_VARIABLES WHERE VARIABLE_NAME = "character_set_client";`, (err, res) => {
+      expect(err).to.equal(null);
+      expect(res).to.deep.equal([
+        {
+          "Value": "utf8",
+          "Variable_name": "character_set_client"
+        }
+      ]);
+      testComplete();
+    });
+  });
+
+  it('works with variable query @@ style', (testComplete) => {
+    connection.query(`SELECT  @@session.auto_increment_increment AS auto_increment_increment, @@character_set_client AS character_set_client;`, (err, res) => {
+      expect(err).to.equal(null);
+      expect(res).to.deep.equal([
+        {
+          "auto_increment_increment": 1,
+          "character_set_client": "utf8"
+        }
+      ]);
+      testComplete();
+    });
+  });
+
   after(() => {
     child.kill('SIGHUP');
   });

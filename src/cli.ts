@@ -294,9 +294,11 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
 
           var context: Datum = {};
 
-          var variablesDataset = getVariablesDataset();
-          context['GLOBAL_VARIABLES'] = variablesDataset;
-          context['SESSION_VARIABLES'] = variablesDataset;
+          if (mode === 'gateway') {
+            var variablesDataset = getVariablesDataset();
+            context['GLOBAL_VARIABLES'] = variablesDataset;
+            context['SESSION_VARIABLES'] = variablesDataset;
+          }
 
           return Q.all(sources.map(source => {
             return External.fromJS({

@@ -40,9 +40,9 @@ var variablesData: VariableRow[] = [
   { "VARIABLE_NAME": "character_set_system", "VARIABLE_VALUE": "utf8" },
   { "VARIABLE_NAME": "character_sets_dir", "VARIABLE_VALUE": "/usr/share/mysql/charsets/" },
   { "VARIABLE_NAME": "check_proxy_users", "VARIABLE_VALUE": "OFF" },
-  { "VARIABLE_NAME": "collation_connection", "VARIABLE_VALUE": "utf8_general_ci" },
-  { "VARIABLE_NAME": "collation_database", "VARIABLE_VALUE": "utf8_general_ci" },
-  { "VARIABLE_NAME": "collation_server", "VARIABLE_VALUE": "utf8_general_ci" },
+  { "VARIABLE_NAME": "collation_connection", "VARIABLE_VALUE": "utf8_unicode_ci" },
+  { "VARIABLE_NAME": "collation_database", "VARIABLE_VALUE": "utf8_unicode_ci" },
+  { "VARIABLE_NAME": "collation_server", "VARIABLE_VALUE": "utf8_unicode_ci" },
   { "VARIABLE_NAME": "completion_type", "VARIABLE_VALUE": "NO_CHAIN" },
   { "VARIABLE_NAME": "concurrent_insert", "VARIABLE_VALUE": "AUTO" },
   { "VARIABLE_NAME": "connect_timeout", "VARIABLE_VALUE": "10" },
@@ -504,4 +504,12 @@ var variablesData: VariableRow[] = [
 
 export function getVariablesDataset() {
   return Dataset.fromJS(variablesData);
+}
+
+export function getVariablesFlatDataset() {
+  var flatDatum: Lookup<string> = {};
+  for (var variablesDatum of variablesData) {
+    flatDatum[variablesDatum['VARIABLE_NAME']] = variablesDatum['VARIABLE_VALUE'];
+  }
+  return Dataset.fromJS([flatDatum]);
 }

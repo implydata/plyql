@@ -1,6 +1,7 @@
 import * as Q from 'q';
 import { Timezone } from "chronoshift";
 import { Expression, Datum, RefExpression, PlywoodValue, Dataset, Set } from "plywood";
+import { getVariablesFlatDataset } from './variables';
 import { columnToMySQL, MySQLResult, dateToSQL, createMySQLGateway, fallbackMySQLFactory, MySQLParameters } from './mysql-gateway';
 import { executeSQLParse } from "./plyql-executor";
 
@@ -26,13 +27,16 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
   createMySQLGateway(port, (parameters: MySQLParameters, conn: any): void => {
     var { sql, connectionId } = parameters;
     Q.fcall(() => {
+      var myContext = context;
       var match: string[];
 
       // Deal with "SELECT @@blah LIMIT 1" by de-sugaring
-      sql = sql.replace(
-        /^\s*SELECT\s+@@(?:global\.|session\.)?(\w+)/i,
-        'SELECT VARIABLE_NAME AS Variable_name, VARIABLE_VALUE AS Value FROM GLOBAL_VARIABLES WHERE VARIABLE_NAME = "$1"'
-      );
+      if ((/SELECT\s+@@/i).test(sql)) {
+        sql = sql.replace(/@@(?:global\.|session\.)?/g, '');
+        myContext = {
+          data: getVariablesFlatDataset()
+        }
+      }
 
       // Hack, treat USE `blah` as SET ... (ignores it)
       if (match = sql.match(/USE\s+`/i)) {
@@ -73,7 +77,7 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
           };
 
         case 'SELECT':
-          return executeSQLParse(sqlParse, context, timezone)
+          return executeSQLParse(sqlParse, myContext, timezone)
             .then((dataset: PlywoodValue): MySQLResult => {
               if (Dataset.isDataset(dataset)) {
                 return {

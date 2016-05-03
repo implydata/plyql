@@ -19,7 +19,7 @@ const capabilityFlags = 0
   | CLIENT['IGNORE_SPACE']            /* ignore spaces before '' */
   | CLIENT['PROTOCOL_41']             /* new 4.1 protocol */
   | CLIENT['INTERACTIVE']             /* this is an interactive client */
-  | CLIENT['SSL']                     /* switch to ssl after handshake */
+  //| CLIENT['SSL']                     /* switch to ssl after handshake */
   | CLIENT['IGNORE_SIGPIPE']          /* IGNORE sigpipes */
   | CLIENT['TRANSACTIONS']            /* client knows about transactions */
   | CLIENT['RESERVED']                /* old flag for 4.1 protocol  */
