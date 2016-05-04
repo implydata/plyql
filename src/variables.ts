@@ -1,4 +1,4 @@
-import { Dataset } from "plywood";
+import { Dataset, Attributes, AttributeInfo, PlyType } from "plywood";
 
 interface VariableRow {
   VARIABLE_NAME: string;
@@ -507,9 +507,21 @@ export function getVariablesDataset() {
 }
 
 export function getVariablesFlatDataset() {
+  var attributes: Attributes = [];
   var flatDatum: Lookup<string> = {};
   for (var variablesDatum of variablesData) {
-    flatDatum[variablesDatum['VARIABLE_NAME']] = variablesDatum['VARIABLE_VALUE'];
+    var name = variablesDatum['VARIABLE_NAME'];
+    var value: any = variablesDatum['VARIABLE_VALUE'];
+    var type: PlyType = 'STRING';
+
+    // Do this crazy MySQL conversion (I am not making this up)
+    if (value === 'ON' || value === 'OFF') {
+      value = value === 'ON';
+      type = 'BOOLEAN';
+    }
+
+    flatDatum[name] = value;
+    attributes.push(new AttributeInfo({ name, type }));
   }
   return Dataset.fromJS([flatDatum]);
 }

@@ -31,7 +31,7 @@
     "express": "4.13.4",
     "mysql2": "git://github.com/sidorares/node-mysql2.git#8302418d2363b4234b532aa4fe4396a90b507ab8",
     "nopt": "3.0.6",
-    "plywood": "0.10.12",
+    "plywood": "0.10.13",
     "plywood-druid-requester": "1.4.3",
     "plywood-mysql-requester": "1.2.2",
     "q": "1.4.1",
