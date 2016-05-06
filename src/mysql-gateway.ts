@@ -1,11 +1,11 @@
 /// <reference path="../typings/mysql2/mysql2.d.ts" />
+/// <reference path="../typings/mysql2/vogievetsky-mysql2.d.ts" />
 
 import { Dataset, PlyType } from "plywood";
-import * as mysql from 'mysql2';
-
-const TYPES: Lookup<number> = require('mysql2/lib/constants/types');
-const CHARSETS: Lookup<number> = require('mysql2/lib/constants/charsets');
-const CLIENT: Lookup<number> = require('mysql2/lib/constants/client');
+import * as mysql from 'vogievetsky-mysql2';
+const TYPES: Lookup<number> = require('vogievetsky-mysql2/lib/constants/types');
+const CHARSETS: Lookup<number> = require('vogievetsky-mysql2/lib/constants/charsets');
+const CLIENT: Lookup<number> = require('vogievetsky-mysql2/lib/constants/client');
 
 const capabilityFlags = 0
   | CLIENT['LONG_PASSWORD']           /* new more secure passwords */

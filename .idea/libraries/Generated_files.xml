@@ -2,18 +2,20 @@
   <library name="Generated files" type="javaScript">
     <properties>
       <sourceFilesUrls>
-        <item url="file://$PROJECT_DIR$/node_modules/plywood/node_modules/immutable-class/test/tester.mocha.js" />
         <item url="file://$PROJECT_DIR$/node_modules/plywood/node_modules/immutable-class/test/index.mocha.js" />
-        <item url="file://$PROJECT_DIR$/node_modules/immutable-class/test/index.mocha.js" />
-        <item url="file://$PROJECT_DIR$/node_modules/chronoshift/test/floor-shift-ceil-utc.mocha.js" />
         <item url="file://$PROJECT_DIR$/node_modules/plywood/node_modules/immutable-class/test/tester.mocha.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/chronoshift/test/floor-shift-ceil-utc.mocha.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/chronoshift/test/timezone.mocha.js" />
         <item url="file://$PROJECT_DIR$/node_modules/chronoshift/test/duration.mocha.js" />
         <item url="file://$PROJECT_DIR$/node_modules/chronoshift/test/floor-shift-ceil.mocha.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/chronoshift/test/date-parser.mocha.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/chronoshift/test/overall.mocha.js" />
         <item url="file://$PROJECT_DIR$/node_modules/chronoshift/test/timezone.mocha.js" />
         <item url="file://$PROJECT_DIR$/node_modules/chronoshift/test/date-parser.mocha.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/immutable-class/test/index.mocha.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/chronoshift/test/duration.mocha.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/chronoshift/test/floor-shift-ceil.mocha.js" />
         <item url="file://$PROJECT_DIR$/node_modules/immutable-class/test/tester.mocha.js" />
-        <item url="file://$PROJECT_DIR$/node_modules/chronoshift/test/overall.mocha.js" />
-        <item url="file://$PROJECT_DIR$/node_modules/plywood/node_modules/immutable-class/test/index.mocha.js" />
       </sourceFilesUrls>
     </properties>
     <CLASSES>
@@ -48,17 +50,19 @@
       <root url="file://$PROJECT_DIR$/node_modules/chronoshift/test/floor_move_ceil.mocha.js" />
       <root url="file://$PROJECT_DIR$/node_modules/chronoshift/test/floor_move_ceil_utc.mocha.js" />
       <root url="file://$PROJECT_DIR$/node_modules/plywood/node_modules/immutable-class/test/index.mocha.js" />
-      <root url="file://$PROJECT_DIR$/node_modules/immutable-class/test/index.mocha.js" />
-      <root url="file://$PROJECT_DIR$/node_modules/plywood/node_modules/immutable-class/test/tester.mocha.js" />
-      <root url="file://$PROJECT_DIR$/node_modules/immutable-class/test/tester.mocha.js" />
-      <root url="file://$PROJECT_DIR$/node_modules/plywood/node_modules/immutable-class/test/index.mocha.js" />
       <root url="file://$PROJECT_DIR$/node_modules/plywood/node_modules/immutable-class/test/tester.mocha.js" />
       <root url="file://$PROJECT_DIR$/node_modules/chronoshift/test/floor-shift-ceil-utc.mocha.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/chronoshift/test/timezone.mocha.js" />
       <root url="file://$PROJECT_DIR$/node_modules/chronoshift/test/duration.mocha.js" />
       <root url="file://$PROJECT_DIR$/node_modules/chronoshift/test/floor-shift-ceil.mocha.js" />
-      <root url="file://$PROJECT_DIR$/node_modules/chronoshift/test/timezone.mocha.js" />
       <root url="file://$PROJECT_DIR$/node_modules/chronoshift/test/date-parser.mocha.js" />
       <root url="file://$PROJECT_DIR$/node_modules/chronoshift/test/overall.mocha.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/chronoshift/test/timezone.mocha.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/chronoshift/test/date-parser.mocha.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/immutable-class/test/index.mocha.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/chronoshift/test/duration.mocha.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/chronoshift/test/floor-shift-ceil.mocha.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/immutable-class/test/tester.mocha.js" />
     </CLASSES>
     <SOURCES />
   </library>
