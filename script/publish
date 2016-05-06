@@ -12,6 +12,8 @@ then
   exit 1
 fi
 
+mocha
+
 echo "Trying to publish..."
 
 script/version-bump

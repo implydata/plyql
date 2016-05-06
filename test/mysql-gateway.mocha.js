@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const { spawn } = require('child_process');
-const mysql = require('mysql2');
+const mysql = require('vogievetsky-mysql2');
 
 const TEST_PORT = 13307;
 

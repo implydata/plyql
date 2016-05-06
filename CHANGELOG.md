@@ -2,6 +2,26 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.7.6
+
+- Run unit tests as part of publish
+
+## 0.7.5
+
+- No git dependencies, new plywood parses `SELECT current_user();`
+
+## 0.7.4
+
+- Fix packaging problem
+
+## 0.7.3
+
+- Better support for JDBC connection
+
+## 0.7.2
+
+- Support for JDBC connection
+
 ## 0.7.1
 
 - Started this changelog
