@@ -318,12 +318,14 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
               attributeOverrides
             }, requester)
               .introspect()
-              .then((introspectedExternal) => {
+          }))
+            .then((introspectedExternals) => {
+              introspectedExternals.forEach((introspectedExternal) => {
+                var source = (introspectedExternal as DruidExternal).dataSource as string;
                 context[source] = introspectedExternal;
                 addExternal(source, introspectedExternal, mode === 'gateway');
               });
-          }))
-            .then(() => {
+
               context['SCHEMATA'] = getSchemataDataset();
               context['TABLES'] = getTablesDataset();
               context['COLUMNS'] = getColumnsDataset();
