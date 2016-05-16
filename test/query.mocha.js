@@ -65,6 +65,9 @@ describe('query', () => {
         },
         {
           "Tables_in_database": "wikipedia"
+        },
+        {
+          "Tables_in_database": "wikipedia-compact"
         }
       ]);
       expect(stderr).to.equal('');

@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.7.7
+
+- CLI parameter `--druid-version` no longer ignored
+- New plywood
+
 ## 0.7.6
 
 - Run unit tests as part of publish

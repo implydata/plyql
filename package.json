@@ -25,15 +25,15 @@
     "prepublish": "./prepublish"
   },
   "dependencies": {
-    "body-parser": "1.15.0",
-    "chronoshift": "0.4.2",
-    "compression": "1.6.1",
+    "body-parser": "1.15.1",
+    "chronoshift": "0.4.4",
+    "compression": "1.6.2",
     "express": "4.13.4",
     "vogievetsky-mysql2": "1.0.0-rc.1",
     "nopt": "3.0.6",
-    "plywood": "0.10.14",
+    "plywood": "0.10.18",
     "plywood-druid-requester": "1.4.3",
-    "plywood-mysql-requester": "1.2.2",
+    "plywood-mysql-requester": "1.2.3",
     "q": "1.4.1",
     "table": "3.7.8"
   },

@@ -190,6 +190,9 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       throw new Error("must have a host");
     }
 
+    // Get version
+    var explicitDruidVersion: string = parsed['druid-version'];
+
     var timezone = Timezone.UTC;
     if (parsed['timezone']) {
       timezone = Timezone.fromJS(parsed['timezone']);
@@ -282,13 +285,13 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
 
     // ============== Do introspect ===============
 
-    var contextPromise = DruidExternal.getVersion(requester)
+    var contextPromise = (explicitDruidVersion ? Q(explicitDruidVersion) : DruidExternal.getVersion(requester))
       .then(druidVersion => {
         var onlyDataSource = dataSource || (sqlParse ? sqlParse.table : null);
         var sourceList = onlyDataSource ? Q([onlyDataSource]) : DruidExternal.getSourceList(requester);
 
         return sourceList.then((sources) => {
-          if (verbose) {
+          if (verbose && !onlyDataSource) {
             console.log(`Found sources [${sources.join(',')}]`);
           }
 
