@@ -7,7 +7,7 @@ const TEST_PORT = 13307;
 var child;
 var connection;
 
-describe('mysql-gateway', () => {
+describe('mysql-gateway-node-client', () => {
   before((done) => {
     child = spawn('bin/plyql', `-h 192.168.99.100 -i P2Y --experimental-mysql-gateway ${TEST_PORT}`.split(' '));
 
