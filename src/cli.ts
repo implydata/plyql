@@ -59,6 +59,7 @@ Arguments:
       --experimental-mysql-gateway [Experimental] the port on which to start the MySQL gateway server
 
       --druid-version            Assume this is the Druid version and do not query it
+      --druid-context            A JSON string representing the Druid context to use
       --skip-cache               disable Druid caching
       --introspection-strategy   Druid introspection strategy
           Possible values:
@@ -67,6 +68,7 @@ Arguments:
           * datasource-get            - only use GET /druid/v2/datasources/DATASOURCE route
 
       --force-unique     force a column to be interpreted as a hyperLogLog uniques
+      --force-theta      force a column to be interpreted as a theta sketch
       --force-histogram  force a column to be interpreted as an approximate histogram
 `
   )
@@ -100,8 +102,10 @@ export interface CommandLineArguments {
   "concurrent"?: number;
   "output"?: string;
   "force-unique"?: string[];
+  "force-theta"?: string[];
   "force-histogram"?: string[];
   "druid-version"?: string;
+  "druid-context"?: string;
   "rollup"?: boolean;
   "skip-cache"?: boolean;
   "introspection-strategy"?: string;
@@ -130,8 +134,10 @@ export function parseArguments(): CommandLineArguments {
       "concurrent": Number,
       "output": String,
       "force-unique": [String, Array],
+      "force-theta": [String, Array],
       "force-histogram": [String, Array],
       "druid-version": String,
+      "druid-context": String,
       "rollup": Boolean,
       "skip-cache": Boolean,
       "introspection-strategy": String
@@ -173,6 +179,10 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
     for (let attributeName of forceUnique) {
       attributeOverrides.push({ name: attributeName, special: 'unique' });
     }
+    var forceTheta: string[] = parsed['force-theta'] || [];
+    for (let attributeName of forceTheta) {
+      attributeOverrides.push({ name: attributeName, special: 'theta' });
+    }
     var forceHistogram: string[] = parsed['force-histogram'] || [];
     for (let attributeName of forceHistogram) {
       attributeOverrides.push({ name: attributeName, special: 'histogram' });
@@ -202,9 +212,18 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
     var retry: number = parsed.hasOwnProperty('retry') ? parsed['retry'] : 2;
     var concurrent: number = parsed.hasOwnProperty('concurrent') ? parsed['concurrent'] : 2;
 
-    var druidContext: Druid.Context = {
-      timeout
-    };
+    // Druid Context
+    var druidContext: Druid.Context = {};
+    if (parsed.hasOwnProperty('druid-context')) {
+      try {
+        // Parse the parsed!
+        druidContext = JSON.parse(parsed['druid-context']);
+      } catch (e) {
+        throw new Error(`can not parse druid-context as JSON ${parsed['druid-context']})`);
+      }
+    }
+
+    druidContext.timeout = timeout;
 
     if (parsed['skip-cache']) {
       druidContext.useCache = false;

@@ -34,7 +34,7 @@ describe('query', () => {
   });
 
   it('does a SELECT query', (testComplete) => {
-    exec(`bin/plyql -h ${druidHost} -a eternity -q 'SELECT page, Count(*) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
+    exec(`bin/plyql -h ${druidHost} -q 'SELECT page, Count(*) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
       expect(stdout).to.contain(sane`
         ┌──────────────────────────────────────────────────────────┬───────┐
@@ -51,7 +51,7 @@ describe('query', () => {
   });
 
   it('does a SHOW TABLES query', (testComplete) => {
-    exec(`bin/plyql -h ${druidHost} -a eternity -q 'SHOW TABLES' -o JSON`, (error, stdout, stderr) => {
+    exec(`bin/plyql -h ${druidHost} -q 'SHOW TABLES' -o JSON`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
       expect(JSON.parse(stdout)).to.deep.equal([
         {
@@ -86,6 +86,23 @@ describe('query', () => {
           }
         }
       ]);
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
+  it('passes in a custom druid context', (testComplete) => {
+    exec(`bin/plyql -h ${druidHost} -v --druid-context '{"lol":1}' -q "SELECT COUNT(DISTINCT user_theta) FROM wikipedia";`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.contain('"lol": 1');
+      expect(stdout).to.contain(sane`
+        ┌────────────────────────────┐
+        │ COUNT(DISTINCT user_theta) │
+        ├────────────────────────────┤
+        │ 38164.49404386297          │
+        └────────────────────────────┘
+
+      `);
       expect(stderr).to.equal('');
       testComplete();
     });

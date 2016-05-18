@@ -2,6 +2,15 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.7.8
+
+- Theta sketches supported
+- `--force-theta` can force columns to be interpreted as theta sketches
+- `--druid-context` allows passing custom JSON as the Druid context 
+
+This query is now possible:
+`plyql -h 192.168.99.100 -v --druid-context '{"lol":1}' -q "SELECT COUNT(DISTINCT user_theta) FROM wikipedia";`
+
 ## 0.7.7
 
 - CLI parameter `--druid-version` no longer ignored
