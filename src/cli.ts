@@ -67,6 +67,8 @@ Arguments:
           * segment-metadata-only     - only use the segmentMetadata query
           * datasource-get            - only use GET /druid/v2/datasources/DATASOURCE route
 
+      --force-time       force a column to be interpreted as a time column
+      --force-boolean    force a column to be interpreted as a boolean
       --force-unique     force a column to be interpreted as a hyperLogLog uniques
       --force-theta      force a column to be interpreted as a theta sketch
       --force-histogram  force a column to be interpreted as an approximate histogram
@@ -101,11 +103,14 @@ export interface CommandLineArguments {
   "retry"?: number;
   "concurrent"?: number;
   "output"?: string;
+  "force-time"?: string[];
+  "force-boolean"?: string[];
   "force-unique"?: string[];
   "force-theta"?: string[];
   "force-histogram"?: string[];
   "druid-version"?: string;
   "druid-context"?: string;
+  "druid-time-attribute"?: string;
   "rollup"?: boolean;
   "skip-cache"?: boolean;
   "introspection-strategy"?: string;
@@ -133,11 +138,14 @@ export function parseArguments(): CommandLineArguments {
       "retry": Number,
       "concurrent": Number,
       "output": String,
+      "force-time": [String, Array],
+      "force-boolean": [String, Array],
       "force-unique": [String, Array],
       "force-theta": [String, Array],
       "force-histogram": [String, Array],
       "druid-version": String,
       "druid-context": String,
+      "druid-time-attribute": String,
       "rollup": Boolean,
       "skip-cache": Boolean,
       "introspection-strategy": String
@@ -175,14 +183,27 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
 
     // Get forced attribute overrides
     var attributeOverrides: AttributeJSs = [];
+
+    var forceTime: string[] = parsed['force-time'] || [];
+    for (let attributeName of forceTime) {
+      attributeOverrides.push({ name: attributeName, type: 'TIME' });
+    }
+
+    var forceBoolean: string[] = parsed['force-boolean'] || [];
+    for (let attributeName of forceBoolean) {
+      attributeOverrides.push({ name: attributeName, type: 'BOOLEAN' });
+    }
+
     var forceUnique: string[] = parsed['force-unique'] || [];
     for (let attributeName of forceUnique) {
       attributeOverrides.push({ name: attributeName, special: 'unique' });
     }
+
     var forceTheta: string[] = parsed['force-theta'] || [];
     for (let attributeName of forceTheta) {
       attributeOverrides.push({ name: attributeName, special: 'theta' });
     }
+
     var forceHistogram: string[] = parsed['force-histogram'] || [];
     for (let attributeName of forceHistogram) {
       attributeOverrides.push({ name: attributeName, special: 'histogram' });
@@ -230,7 +251,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       druidContext.populateCache = false;
     }
 
-    var timeAttribute = '__time';
+    var timeAttribute = parsed['druid-time-attribute'] || '__time';
 
     var filter: Expression = null;
     var intervalString: string = parsed['interval'];

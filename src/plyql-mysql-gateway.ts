@@ -115,6 +115,10 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
             var newRow: any = {};
             for (var k in row) {
               var v = row[k];
+
+              // Kill ranges
+              if (v && v.start) v = v.start;
+
               if (v && v.toISOString) {
                 v = dateToSQL(v);
               } else if (Set.isSet(v)) {

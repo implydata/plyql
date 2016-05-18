@@ -46,7 +46,9 @@ export function plywoodTypeToMySQL(type: PlyType) {
     case 'STRING':
     case 'SET/STRING': return TYPES['VAR_STRING'];
     case 'NUMBER': return TYPES['DOUBLE'];
+    case 'NUMBER_RANGE': return TYPES['DOUBLE'];
     case 'TIME': return TYPES['TIMESTAMP'];
+    case 'TIME_RANGE': return TYPES['TIMESTAMP'];
     default: throw new Error(`unsupported type ${type}`);
   }
 }

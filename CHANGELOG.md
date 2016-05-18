@@ -4,6 +4,11 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.7.8
 
+- `--force-time` can force columns to be interpreted as time
+- `--force-boolean` can force columns to be interpreted as boolean
+
+## 0.7.8
+
 - Theta sketches supported
 - `--force-theta` can force columns to be interpreted as theta sketches
 - `--druid-context` allows passing custom JSON as the Druid context 

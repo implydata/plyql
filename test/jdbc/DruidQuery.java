@@ -3,25 +3,30 @@ import java.sql.DriverManager;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
 
 class DruidQuery
 {
   public static void main(String[] args) throws SQLException
   {
     try {
-      Connection con = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3307/plyql1");
+      // args[0] is something like "jdbc:mysql://127.0.0.1:3307/plyql1"
+      Connection con = DriverManager.getConnection(args[0]);
       Statement stmt = con.createStatement();
       ResultSet rs = stmt.executeQuery(
-        "SELECT page, count(*) AS cnt FROM wikipedia GROUP BY page ORDER BY cnt DESC LIMIT 15"
+        "SELECT DATE_FORMAT(`time`, '%Y-%m-%d 00:00:00') AS `Time`, `channel` AS `Channel`, `isNew` AS IsNew, COUNT(*) AS Count, SUM(`added`)/100 AS 'Added' FROM wikipedia GROUP BY DATE_FORMAT(`time`, '%Y-%m-%d 00:00:00'), channel, isNew ORDER BY Count DESC LIMIT 5"
       );
 
       while (rs.next()) {
-        String page = rs.getString("page");
-        long count = rs.getLong("cnt");
-        System.out.println(String.format("page[%s] count[%d]", page, count));
+      	Timestamp time = rs.getTimestamp("Time");
+        String channel = rs.getString("Channel");
+        long count = rs.getLong("Count");
+        float added = rs.getFloat("Added");
+        System.out.println(String.format("Time[%s] Channel[%s] Count[%d] Added[%f]", time.toString(), channel, count, added));
       }
     } catch (SQLException s) {
       s.printStackTrace();
     }
   }
 }
+
