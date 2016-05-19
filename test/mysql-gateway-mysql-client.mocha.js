@@ -68,7 +68,7 @@ describe('mysql-gateway-mysql-client', () => {
       expect(error).to.equal(null);
       expect(stdout.replace(/\t/g, '|')).to.contain(sane`
         auto_increment_increment|character_set_client|character_set_connection|character_set_results|character_set_server|init_connect|interactive_timeout|license|lower_case_table_names|max_allowed_packet|net_buffer_length|net_write_timeout|query_cache_size|query_cache_type|sql_mode|system_time_zone|time_zone|tx_isolation|wait_timeout
-        1|utf8|utf8|utf8|utf8|0|28800|Apache-2.0|0|4194304|16384|60|1048576|0|ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION|UTC|SYSTEM|REPEATABLE-READ|28800
+        1|utf8mb4|utf8mb4|utf8mb4|utf8mb4|0|28800|Apache-2.0|0|4194304|16384|60|1048576|0|ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION|UTC|UTC|REPEATABLE-READ|28800
       `);
       expect(stderr).to.equal('');
       testComplete();

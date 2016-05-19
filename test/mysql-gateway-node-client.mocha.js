@@ -85,7 +85,7 @@ describe('mysql-gateway-node-client', () => {
       expect(err).to.equal(null);
       expect(res).to.deep.equal([
         {
-          "Value": "utf8",
+          "Value": "utf8mb4",
           "Variable_name": "character_set_client"
         }
       ]);
@@ -99,7 +99,7 @@ describe('mysql-gateway-node-client', () => {
       expect(res).to.deep.equal([
         {
           "auto_increment_increment": 1,
-          "character_set_client": "utf8"
+          "character_set_client": "utf8mb4"
         }
       ]);
       testComplete();
