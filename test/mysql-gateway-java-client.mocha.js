@@ -8,9 +8,11 @@ const TEST_PORT = 13307;
 var child;
 
 var jars = readdirSync('test/jdbc/jar');
+jars = jars.filter((file) => /\.jar$/.test(file));
 if (!jars.length) throw new Error("must have at least one jar in 'test/jdbc/jar'");
+var latestJar = 'mysql-connector-java-6.0.2.jar';
 
-// jars = ['mysql-connector-java-6.0.2.jar'];
+// jars = ['mysql-connector-java-5.1.39.jar'];
 
 describe('mysql-gateway-mysql-client', function() {
   this.timeout(10000);
@@ -37,37 +39,19 @@ describe('mysql-gateway-mysql-client', function() {
 
   });
 
-  for (var jar of jars) {
+  jars.forEach((jar) => {
     it(`does basic query on ${jar}`, (testComplete) => {
-      exec(`java -cp test/jdbc/jar/${jar}:test/jdbc/ DruidQuery "jdbc:mysql://127.0.0.1:${TEST_PORT}/plyql1"`, (error, stdout, stderr) => {
+      exec(`java -cp test/jdbc/jar/${jar}:test/jdbc/ DruidQuery "jdbc:mysql://127.0.0.1:${TEST_PORT}/plyql1"`, (error, plyqlStdout, stderr) => {
         expect(error).to.equal(null);
-        //console.log('stderr', stderr);
-        expect(stdout).to.contain(sane`
-          Time[2015-09-11 17:00:00.0] Channel[en] Count[104870] Added[231369.562500]
-          Time[2015-09-11 17:00:00.0] Channel[vi] Count[98862] Added[29220.669922]
-          Time[2015-09-11 17:00:00.0] Channel[de] Count[23833] Added[40796.171875]
-          Time[2015-09-11 17:00:00.0] Channel[fr] Count[19064] Added[41101.738281]
-          Time[2015-09-11 17:00:00.0] Channel[ru] Count[12841] Added[34958.781250]
-        `);
-        //expect(stderr).to.equal('');
-        testComplete();
-      });
-    });
-  }
+        expect(stderr).to.not.contain('at DruidQuery.main(');
 
-  it(`does same query on real MySQL ${jar}`, (testComplete) => {
-    exec(`java -cp test/jdbc/jar/${jar}:test/jdbc/ DruidQuery "jdbc:mysql://192.168.99.100:3306/datazoo?user=root"`, (error, stdout, stderr) => {
-      expect(error).to.equal(null);
-      //console.log('stderr', stderr);
-      expect(stdout).to.contain(sane`
-        Time[2015-09-11 17:00:00.0] Channel[en] Count[104870] Added[231369.562500]
-        Time[2015-09-11 17:00:00.0] Channel[vi] Count[98862] Added[29220.669922]
-        Time[2015-09-11 17:00:00.0] Channel[de] Count[23833] Added[40796.171875]
-        Time[2015-09-11 17:00:00.0] Channel[fr] Count[19064] Added[41101.738281]
-        Time[2015-09-11 17:00:00.0] Channel[ru] Count[12841] Added[34958.781250]
-      `);
-      //expect(stderr).to.equal('');
-      testComplete();
+        exec(`java -cp test/jdbc/jar/${jar}:test/jdbc/ DruidQuery "jdbc:mysql://192.168.99.100:3306/datazoo?user=root"`, (error, mysqlStdout, stderr) => {
+          expect(error).to.equal(null);
+          expect(plyqlStdout).to.equal(mysqlStdout);
+          //expect(stderr).to.equal('');
+          testComplete();
+        });
+      });
     });
   });
 

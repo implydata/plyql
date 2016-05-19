@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.7.9
+
+- Fixed JDBC tests
+- Changed some MySQL variables
+
 ## 0.7.8
 
 - `--force-time` can force columns to be interpreted as time
