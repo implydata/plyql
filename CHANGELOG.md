@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.7.10
+
+- Correct column ordering in CSV and TSV outputs
+
 ## 0.7.9
 
 - Fixed JDBC tests

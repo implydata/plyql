@@ -110,8 +110,7 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
 
         case 'dataset':
           var dataset = result.dataset;
-          //var plyColumns = dataset.getColumns().map(c => columnToMySQL(c, result.table)); // ToDo put this back when it works
-          var plyColumns = dataset.attributes.map(a => columnToMySQL(a, result.table));
+          var plyColumns = dataset.getColumns().map(c => columnToMySQL(c, result.table));
           var plyRows = dataset.flatten().map(row => {
             var newRow: any = {};
             for (var k in row) {

@@ -60,7 +60,7 @@ describe('mysql-gateway-node-client', () => {
   });
 
   it('works complex query', (testComplete) => {
-    connection.query(`SELECT page, Count(*) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;`, (err, res) => {
+    connection.query(`SELECT page, SUM(count) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;`, (err, res) => {
       expect(err).to.equal(null);
       expect(res).to.deep.equal([
         {
@@ -68,7 +68,7 @@ describe('mysql-gateway-node-client', () => {
           "page": "User:Cyde/List of candidates for speedy deletion/Subpage"
         },
         {
-          "Count": 238,
+          "Count": 241,
           "page": "Jeremy Corbyn"
         },
         {

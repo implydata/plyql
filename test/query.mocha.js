@@ -34,14 +34,14 @@ describe('query', () => {
   });
 
   it('does a SELECT query', (testComplete) => {
-    exec(`bin/plyql -h ${druidHost} -q 'SELECT page, Count(*) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
+    exec(`bin/plyql -h ${druidHost} -q 'SELECT page, SUM(count) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
       expect(stdout).to.contain(sane`
         ┌──────────────────────────────────────────────────────────┬───────┐
         │ page                                                     │ Count │
         ├──────────────────────────────────────────────────────────┼───────┤
         │ User:Cyde/List of candidates for speedy deletion/Subpage │ 255   │
-        │ Jeremy Corbyn                                            │ 238   │
+        │ Jeremy Corbyn                                            │ 241   │
         │ Wikipedia:Administrators' noticeboard/Incidents          │ 228   │
         └──────────────────────────────────────────────────────────┴───────┘
       `);

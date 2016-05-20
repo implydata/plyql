@@ -55,7 +55,7 @@ describe('mysql-gateway-mysql-client', () => {
   });
 
   it('does a SELECT query', (testComplete) => {
-    exec(`mysql --host=127.0.0.1 --port=${TEST_PORT} -e 'SELECT page, Count(*) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
+    exec(`mysql --host=127.0.0.1 --port=${TEST_PORT} -e 'SELECT page, SUM(count) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
       expect(stdout).to.contain('User:Cyde/List of candidates for speedy deletion/Subpage');
       expect(stderr).to.equal('');

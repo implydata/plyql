@@ -68,7 +68,7 @@ describe('json-server', () => {
     request.post({
       url: `http://localhost:${TEST_PORT}/plyql`,
       json: {
-        sql: `SELECT page, Count(*) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;`
+        sql: `SELECT page, SUM(count) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;`
       }
     }, (err, response, body) => {
       expect(err).to.equal(null);
@@ -78,7 +78,7 @@ describe('json-server', () => {
           "page": "User:Cyde/List of candidates for speedy deletion/Subpage"
         },
         {
-          "Count": 238,
+          "Count": 241,
           "page": "Jeremy Corbyn"
         },
         {
