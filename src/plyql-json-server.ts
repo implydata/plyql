@@ -32,6 +32,9 @@ export function plyqlJSONServer(port: number, context: Datum, timezone: Timezone
           });
         }
       })
+      .fail((e) => {
+        res.status(400).send({ error: e.message });
+      })
       .done();
   });
 
