@@ -90,6 +90,49 @@ describe('json-server', () => {
     });
   });
 
+  it('works with can not parse error', (testComplete) => {
+    request.post({
+      url: `http://localhost:${TEST_PORT}/plyql`,
+      json: {
+        sql: `SELECT FROMZY WOMZY`
+      }
+    }, (err, response, body) => {
+      expect(err).to.equal(null);
+      expect(response.statusCode).to.equal(400);
+      expect(body.error).to.contain('SQL parse error');
+      testComplete();
+    });
+  });
+
+  it('works with unsupported verb error', (testComplete) => {
+    request.post({
+      url: `http://localhost:${TEST_PORT}/plyql`,
+      json: {
+        sql: `USE drugs`
+      }
+    }, (err, response, body) => {
+      expect(err).to.equal(null);
+      expect(response.statusCode).to.equal(400);
+      expect(body.error).to.contain('Unsupported SQL verb USE');
+      testComplete();
+    });
+  });
+
+  it('works with general compute error', (testComplete) => {
+    request.post({
+      url: `http://localhost:${TEST_PORT}/plyql`,
+      json: {
+        sql: `SELECT page, SUM(count) AS 'Count' FROM wikipediaz WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;`
+      }
+    }, (err, response, body) => {
+      expect(err).to.equal(null);
+      expect(response.statusCode).to.equal(500);
+      expect(body.error).to.contain('could not');
+      expect(body.error).to.contain('wikipediaz');
+      testComplete();
+    });
+  });
+
   after(() => {
     child.kill('SIGHUP');
   });

@@ -18,6 +18,7 @@ export function plyqlJSONServer(port: number, context: Datum, timezone: Timezone
 
     if (sqlParse.verb && sqlParse.verb !== 'SELECT') { // DESCRIBE + SHOW get re-written
       res.status(400).send({ error: `Unsupported SQL verb ${sqlParse.verb} must be SELECT, DESCRIBE, SHOW, or a raw expression` });
+      return;
     }
 
     executeSQLParse(sqlParse, context, timezone)
@@ -33,7 +34,7 @@ export function plyqlJSONServer(port: number, context: Datum, timezone: Timezone
         }
       })
       .fail((e) => {
-        res.status(400).send({ error: e.message });
+        res.status(500).send({ error: e.message });
       })
       .done();
   });

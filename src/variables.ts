@@ -499,7 +499,8 @@ var variablesData: VariableRow[] = [
   { "VARIABLE_NAME": "version_comment", "VARIABLE_VALUE": "MySQL PlyQL Gateway (Apache 2.0)" },
   { "VARIABLE_NAME": "version_compile_machine", "VARIABLE_VALUE": "x86_64" },
   { "VARIABLE_NAME": "version_compile_os", "VARIABLE_VALUE": "Linux" },
-  { "VARIABLE_NAME": "wait_timeout", "VARIABLE_VALUE": "28800" }
+  { "VARIABLE_NAME": "wait_timeout", "VARIABLE_VALUE": "28800" },
+  { "VARIABLE_NAME": "warning_count", "VARIABLE_VALUE": "0" }
 ];
 
 export function getVariablesDataset() {

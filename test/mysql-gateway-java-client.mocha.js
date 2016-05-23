@@ -10,7 +10,6 @@ var child;
 var jars = readdirSync('test/jdbc/jar');
 jars = jars.filter((file) => /\.jar$/.test(file));
 if (!jars.length) throw new Error("must have at least one jar in 'test/jdbc/jar'");
-var latestJar = 'mysql-connector-java-6.0.2.jar';
 
 // jars = ['mysql-connector-java-5.1.39.jar'];
 
