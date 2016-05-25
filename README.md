@@ -39,6 +39,7 @@ Option                     | Description
 `--introspection-strategy` | Druid introspection strategy. Use `--help` for possible values
 `--force-time`             | force a column to be interpreted as a time column
 `--force-boolean`          | force a column to be interpreted as a boolean column
+`--force-number`           | force a column to be interpreted as a number column
 `--force-unique`           | force a column to be interpreted as a hyperLogLog uniques
 `--force-theta`            | force a column to be interpreted as a [theta sketch](http://druid.io/docs/latest/development/extensions-core/datasketches-aggregators.html)
 `--force-histogram`        | force a column to be interpreted as an approximate histogram (for quantiles)

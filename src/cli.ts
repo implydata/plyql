@@ -69,6 +69,7 @@ Arguments:
 
       --force-time       force a column to be interpreted as a time column
       --force-boolean    force a column to be interpreted as a boolean
+      --force-number     force a column to be interpreted as a number
       --force-unique     force a column to be interpreted as a hyperLogLog uniques
       --force-theta      force a column to be interpreted as a theta sketch
       --force-histogram  force a column to be interpreted as an approximate histogram
@@ -105,6 +106,7 @@ export interface CommandLineArguments {
   "output"?: string;
   "force-time"?: string[];
   "force-boolean"?: string[];
+  "force-number"?: string[];
   "force-unique"?: string[];
   "force-theta"?: string[];
   "force-histogram"?: string[];
@@ -140,6 +142,7 @@ export function parseArguments(): CommandLineArguments {
       "output": String,
       "force-time": [String, Array],
       "force-boolean": [String, Array],
+      "force-number": [String, Array],
       "force-unique": [String, Array],
       "force-theta": [String, Array],
       "force-histogram": [String, Array],
@@ -192,6 +195,11 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
     var forceBoolean: string[] = parsed['force-boolean'] || [];
     for (let attributeName of forceBoolean) {
       attributeOverrides.push({ name: attributeName, type: 'BOOLEAN' });
+    }
+
+    var forceNumber: string[] = parsed['force-number'] || [];
+    for (let attributeName of forceNumber) {
+      attributeOverrides.push({ name: attributeName, type: 'NUMBER' });
     }
 
     var forceUnique: string[] = parsed['force-unique'] || [];

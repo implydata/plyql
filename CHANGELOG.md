@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.7.12
+
+- `--force-number` can force columns to be interpreted as number
+- Allow paginated select queries
+
 ## 0.7.11
 
 - JSON Server does not fail on unknown table error

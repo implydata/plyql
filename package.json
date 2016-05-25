@@ -31,7 +31,7 @@
     "express": "4.13.4",
     "vogievetsky-mysql2": "1.0.0-rc.1",
     "nopt": "3.0.6",
-    "plywood": "0.10.21",
+    "plywood": "0.10.23",
     "plywood-druid-requester": "1.4.3",
     "plywood-mysql-requester": "1.2.3",
     "q": "1.4.1",
@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "chai": "3.5.0",
-    "mocha": "2.4.5",
+    "mocha": "2.5.3",
     "request": "2.72.0",
     "typescript": "1.8.10"
   },
