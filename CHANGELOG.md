@@ -2,25 +2,30 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
-## 0.7.12
+## 0.7.14
+
+- New Plywood support `SHOW FULL TABLES`
+- New Plywood support GROUP BY on time on non primary time dimensions
+
+## 0.7.13
 
 - `--force-number` can force columns to be interpreted as number
 - Allow paginated select queries
 
-## 0.7.11
+## 0.7.12
 
 - JSON Server does not fail on unknown table error
 
-## 0.7.10
+## 0.7.11
 
 - Correct column ordering in CSV and TSV outputs
 
-## 0.7.9
+## 0.7.10
 
 - Fixed JDBC tests
 - Changed some MySQL variables
 
-## 0.7.8
+## 0.7.9
 
 - `--force-time` can force columns to be interpreted as time
 - `--force-boolean` can force columns to be interpreted as boolean
