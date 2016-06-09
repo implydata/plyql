@@ -24,7 +24,7 @@ Option                     | Description
 `--version`                | display the version number
 `-v`, `--verbose`          | display the queries that are being made
 `-h`, `--host`             | the host to connect to
-`-d`, `--data-source`      | use this data source for the query (supersedes FROM clause)
+`-s`, `--source`           | use this source for the query (supersedes FROM clause)
 `-i`, `--interval`         | add (AND) a `__time` filter between NOW-INTERVAL and NOW
 `-tz`, `--timezone`        | the default timezone
 `-q`, `--query`            | the query to run

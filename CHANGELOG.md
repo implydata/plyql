@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.8.1
+
+- Changed `--data-source` (`-d`) to `--source` (`-s`)
+
 ## 0.7.14
 
 - New Plywood support `SHOW FULL TABLES`

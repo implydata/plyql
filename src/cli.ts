@@ -36,7 +36,7 @@ Examples:
 
   plyql -h 10.20.30.40 -q 'SELECT MAX(__time) AS maxTime FROM twitterstream'
 
-  plyql -h 10.20.30.40 -d twitterstream -i P5D -q \\
+  plyql -h 10.20.30.40 -s twitterstream -i P5D -q \\
     'SELECT SUM(tweet_length) as TotalTweetLength WHERE first_hashtag = "#imply"'
 
 Arguments:
@@ -45,7 +45,7 @@ Arguments:
       --version      display the version number
   -v, --verbose      display the queries that are being made
   -h, --host         the host to connect to
-  -d, --data-source  use this data source for the query (supersedes FROM clause)
+  -s, --source       use this source for the query (supersedes FROM clause)
   -i, --interval     add (AND) a __time filter between NOW-INTERVAL and NOW
   -Z, --timezone     the default timezone
   -o, --output       the output format. Possible values: table (default), json, csv, tsv, flat
@@ -91,6 +91,7 @@ function printVersion(): void {
 export interface CommandLineArguments {
   "host"?: string;
   "druid"?: string;
+  "source"?: string;
   "data-source"?: string;
   "help"?: boolean;
   "query"?: string;
@@ -127,6 +128,7 @@ export function parseArguments(): CommandLineArguments {
     {
       "host": String,
       "druid": String,
+      "source": String,
       "data-source": String,
       "help": Boolean,
       "query": String,
@@ -156,7 +158,7 @@ export function parseArguments(): CommandLineArguments {
     {
       "v": ["--verbose"],
       "h": ["--host"],
-      "d": ["--data-source"],
+      "s": ["--source"],
       "i": ["--interval"],
       "Z": ["--timezone"],
       "o": ["--output"],
@@ -274,7 +276,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       filter = $(timeAttribute).in(interval);
     }
 
-    var dataSource = parsed['data-source'] || null;
+    var masterSource = parsed['source'] || parsed['data-source'] || null;
 
     // Get SQL
     if (Number(!!parsed['query']) + Number(!!parsed['json-server']) + Number(!!parsed['experimental-mysql-gateway']) > 1) {
@@ -335,7 +337,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
 
     var contextPromise = (explicitDruidVersion ? Q(explicitDruidVersion) : DruidExternal.getVersion(requester))
       .then(druidVersion => {
-        var onlyDataSource = dataSource || (sqlParse ? sqlParse.table : null);
+        var onlyDataSource = masterSource || (sqlParse ? sqlParse.table : null);
         var sourceList = onlyDataSource ? Q([onlyDataSource]) : DruidExternal.getSourceList(requester);
 
         return sourceList.then((sources) => {
@@ -355,7 +357,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
             return External.fromJS({
               engine: 'druid',
               version: druidVersion,
-              dataSource: source,
+              source,
               rollup: parsed['rollup'],
               timeAttribute,
               allowEternity: true,
@@ -369,7 +371,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
           }))
             .then((introspectedExternals) => {
               introspectedExternals.forEach((introspectedExternal) => {
-                var source = (introspectedExternal as DruidExternal).dataSource as string;
+                var source = introspectedExternal.source as string;
                 context[source] = introspectedExternal;
                 addExternal(source, introspectedExternal, mode === 'gateway');
               });
@@ -378,8 +380,8 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
               context['TABLES'] = getTablesDataset();
               context['COLUMNS'] = getColumnsDataset();
 
-              if (mode === 'query' && dataSource && !sqlParse.table && !sqlParse.rewrite) {
-                context['data'] = context[dataSource];
+              if (mode === 'query' && masterSource && !sqlParse.table && !sqlParse.rewrite) {
+                context['data'] = context[masterSource];
               }
 
               if (verbose) console.log(`introspection complete`);
