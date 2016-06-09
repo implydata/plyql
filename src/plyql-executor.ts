@@ -21,3 +21,7 @@ export function executeSQLParse(sqlParse: SQLParse, context: Datum, timezone: Ti
   
   return expression.compute(context, { timezone });
 }
+
+export function executePlywood(expression: Expression, context: Datum, timezone: Timezone): Q.Promise<PlywoodValue> {
+  return expression.compute(context, { timezone });
+}

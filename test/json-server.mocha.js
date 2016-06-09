@@ -2,6 +2,8 @@ const { expect } = require('chai');
 const { spawn } = require('child_process');
 const request = require('request');
 
+const { $, ply, r } = require('plywood');
+
 const TEST_PORT = 18082;
 
 var child;
@@ -129,6 +131,39 @@ describe('json-server', () => {
       expect(response.statusCode).to.equal(500);
       expect(body.error).to.contain('could not');
       expect(body.error).to.contain('wikipediaz');
+      testComplete();
+    });
+  });
+
+  it('works complex expression', (testComplete) => {
+    var expression = $('wikipedia')
+      .filter('$channel == "en"')
+      .split('$page', 'Page')
+      .apply('Count', '$wikipedia.sum($count)')
+      .sort('$Count', 'descending')
+      .limit(3);
+
+    request.post({
+      url: `http://localhost:${TEST_PORT}/plywood`,
+      json: {
+        expression: expression.toJS()
+      }
+    }, (err, response, body) => {
+      expect(err).to.equal(null);
+      expect(body.result).to.deep.equal([
+        {
+          "Count": 255,
+          "Page": "User:Cyde/List of candidates for speedy deletion/Subpage"
+        },
+        {
+          "Count": 241,
+          "Page": "Jeremy Corbyn"
+        },
+        {
+          "Count": 228,
+          "Page": "Wikipedia:Administrators' noticeboard/Incidents"
+        }
+      ]);
       testComplete();
     });
   });

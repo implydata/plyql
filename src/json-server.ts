@@ -11,7 +11,8 @@ import * as bodyParser from 'body-parser';
 import * as compress from 'compression';
 
 export interface JSONParameters {
-  sql: string;
+  sql?: string;
+  expression?: any;
 }
 
 export interface JSONQueryProcessor {
@@ -29,6 +30,8 @@ export function createJSONServer(port: number, queryProcessor: JSONQueryProcesso
   });
 
   app.use(bodyParser.json());
+  
+  // Regular PlyQL route
   app.post('/plyql', (req: Request, res: Response) => {
     var { sql } = req.body;
 
@@ -39,6 +42,19 @@ export function createJSONServer(port: number, queryProcessor: JSONQueryProcesso
 
     console.log(`Got SQL: ${sql}`);
     queryProcessor({ sql }, res);
+  });
+
+  // Extra Plywood route
+  app.post('/plywood', (req: Request, res: Response) => {
+    var { expression } = req.body;
+
+    if (typeof expression === "undefined") {
+      res.status(400).json({ error: "'expression' must be defined" });
+      return;
+    }
+
+    console.log(`Got expression`);
+    queryProcessor({ expression }, res);
   });
 
   app.use((err: any, req: Request, res: Response, next: Function) => {

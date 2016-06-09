@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.8.2
+
+- Added `/plywood` route test
+
 ## 0.8.1
 
 - Changed `--data-source` (`-d`) to `--source` (`-s`)
