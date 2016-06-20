@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.8.3
+
+- Using latest plywood that fixed `AS` logic
+- Druid 0.9.1 compatible
+
 ## 0.8.2
 
 - Added `/plywood` route test
