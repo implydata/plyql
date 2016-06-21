@@ -96,7 +96,7 @@ describe('json-server', () => {
     request.post({
       url: `http://localhost:${TEST_PORT}/plyql`,
       json: {
-        sql: `SELECT FROMZY WOMZY`
+        sql: `SELECT FROMZY WOMZY GOUPZY POPZY`
       }
     }, (err, response, body) => {
       expect(err).to.equal(null);
