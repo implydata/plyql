@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.8.4
+
+- Added shrinkwrap
+
 ## 0.8.3
 
 - Using latest plywood that fixed `AS` logic

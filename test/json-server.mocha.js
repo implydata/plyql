@@ -24,7 +24,7 @@ describe('json-server', () => {
     });
   });
 
-  it('works with GET health', (testComplete) => {
+  it('works with GET /health', (testComplete) => {
     request.get(`http://localhost:${TEST_PORT}/health`, (err, response, body) => {
       expect(err).to.equal(null);
       expect(body).to.contain('I am healthy @');
