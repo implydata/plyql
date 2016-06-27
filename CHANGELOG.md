@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.8.5
+
+- Remove shrinkwrap
+- Upgrade dependencies
+
 ## 0.8.4
 
 - Added shrinkwrap

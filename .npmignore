@@ -1,2 +1,27 @@
-.idea
-data/
+# === WebStorm ===
+/.idea/
+
+# === Build ===
+
+/compile-tsc
+/script/
+/prepublish
+
+# === Source ===
+
+/src/
+
+# === Test ===
+
+/test/
+/run-tests
+/travis-test
+/.travis.yml
+
+# === Docs ===
+
+/docs/
+
+# === Misc ===
+
+/private/
