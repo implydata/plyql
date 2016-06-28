@@ -396,7 +396,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
         case 'query':
           return executeSQLParse(sqlParse, context, timezone)
             .then((data: PlywoodValue) => {
-              var outputStr: string;
+              var outputStr = '';
               if (Dataset.isDataset(data)) {
                 var dataset = <Dataset>data;
                 switch (output) {
@@ -405,12 +405,14 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
                     var flatData = dataset.flatten();
                     var columnNames = columns.map(c => c.name);
 
-                    var tableData = [columnNames].concat(flatData.map(flatDatum => columnNames.map(cn => flatDatum[cn])));
+                    if (columnNames.length) {
+                      var tableData = [columnNames].concat(flatData.map(flatDatum => columnNames.map(cn => flatDatum[cn])));
 
-                    outputStr = table(tableData, {
-                      border: getBorderCharacters('norc'),
-                      drawHorizontalLine: (index: number, size: number) => index <= 1 || index === size
-                    });
+                      outputStr = table(tableData, {
+                        border: getBorderCharacters('norc'),
+                        drawHorizontalLine: (index: number, size: number) => index <= 1 || index === size
+                      });
+                    }
                     break;
 
                   case 'json':

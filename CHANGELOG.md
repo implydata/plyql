@@ -2,14 +2,22 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
-## 0.8.5
+## 0.8.7
+
+- Empty result set works with table rendering
+
+## 0.8.6
 
 - Remove shrinkwrap
 - Upgrade dependencies
 
-## 0.8.4
+## 0.8.5
 
 - Added shrinkwrap
+
+## 0.8.4
+
+- New plywood
 
 ## 0.8.3
 
