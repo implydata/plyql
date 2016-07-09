@@ -2,6 +2,14 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.8.9
+
+- New plywood adds string comparisons
+
+## 0.8.8
+
+- New plywood fixes JS expressions
+
 ## 0.8.7
 
 - Empty result set works with table rendering
