@@ -26,12 +26,12 @@
   },
   "dependencies": {
     "body-parser": "1.15.2",
-    "chronoshift": "0.4.5",
+    "chronoshift": "0.4.6",
     "compression": "1.6.2",
     "express": "4.14.0",
     "vogievetsky-mysql2": "1.0.0-rc.1",
     "nopt": "3.0.6",
-    "plywood": "0.11.7",
+    "plywood": "0.11.8",
     "plywood-druid-requester": "1.4.4",
     "plywood-mysql-requester": "1.2.5",
     "q": "1.4.1",
@@ -40,7 +40,7 @@
   "devDependencies": {
     "chai": "3.5.0",
     "mocha": "2.5.3",
-    "request": "2.72.0",
+    "request": "2.73.0",
     "typescript": "1.8.10"
   },
   "bin": {
