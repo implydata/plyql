@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.8.10
+
+- Updated file notices
+
 ## 0.8.9
 
 - New plywood adds string comparisons
