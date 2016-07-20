@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.8.11
+
+- Fixed problem when rendering a single column table would fail if a `null` existed as a value.
+
 ## 0.8.10
 
 - Updated file notices

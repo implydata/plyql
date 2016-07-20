@@ -32,8 +32,8 @@
     "vogievetsky-mysql2": "1.0.0-rc.1",
     "nopt": "3.0.6",
     "plywood": "0.11.8",
-    "plywood-druid-requester": "1.4.4",
-    "plywood-mysql-requester": "1.2.5",
+    "plywood-druid-requester": "1.4.5",
+    "plywood-mysql-requester": "1.2.6",
     "q": "1.4.1",
     "table": "3.7.8"
   },

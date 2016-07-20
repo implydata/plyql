@@ -75,6 +75,23 @@ describe('query', () => {
     });
   });
 
+  it('does a SELECT query with NULL', (testComplete) => {
+    exec(`bin/plyql -h ${druidHost} -q 'SELECT cityName FROM wikipedia GROUP BY 1 LIMIT 3;'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.contain(sane`
+        ┌────────────┐
+        │ cityName   │
+        ├────────────┤
+        │ NULL       │
+        │ 'Ewa Beach │
+        │ A Coruña   │
+        └────────────┘
+      `);
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
   it('does a SHOW TABLES query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -q 'SHOW TABLES' -o JSON`, (error, stdout, stderr) => {
       expect(error).to.equal(null);

@@ -41,6 +41,11 @@ import { executeSQLParse } from "./plyql-executor";
 import { getVariablesDataset } from './variables';
 import { addExternal, getSchemataDataset, getTablesDataset, getColumnsDataset } from './schema';
 
+function formatNull(v: any): any {
+  if (v == null) return 'NULL';
+  return v;
+}
+
 function printUsage() {
   console.log(`
 Usage: plyql [options]
@@ -422,7 +427,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
                     var columnNames = columns.map(c => c.name);
 
                     if (columnNames.length) {
-                      var tableData = [columnNames].concat(flatData.map(flatDatum => columnNames.map(cn => flatDatum[cn])));
+                      var tableData = [columnNames].concat(flatData.map(flatDatum => columnNames.map(cn => formatNull(flatDatum[cn]))));
 
                       outputStr = table(tableData, {
                         border: getBorderCharacters('norc'),
