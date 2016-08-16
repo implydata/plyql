@@ -196,12 +196,12 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
   return Q.fcall(() => {
     if (parsed.argv.original.length === 0 || parsed.help) {
       printUsage();
-      return;
+      return null;
     }
 
     if (parsed['version']) {
       printVersion();
-      return;
+      return null;
     }
 
     var verbose: boolean = parsed['verbose'];

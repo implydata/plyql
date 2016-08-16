@@ -171,7 +171,8 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
           break;
 
         default:
-          throw new Error(`unexpected result ${result.type}`);
+          // https://github.com/Microsoft/TypeScript/issues/9838
+          throw new Error(`unexpected result ${(result as any)['type']}`);
       }
     })
     .catch((err: Error) => {
