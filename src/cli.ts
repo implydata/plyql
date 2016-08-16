@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-/// <reference path="../typings/node/node.d.ts" />
 /// <reference path="../typings/nopt/nopt.d.ts" />
-/// <reference path="../node_modules/plywood/build/plywood.d.ts" />
-/// <reference path="../node_modules/plywood-druid-requester/build/plywood-druid-requester.d.ts" />
 /// <reference path="../typings/table/table.d.ts" />
 
 import * as fs from 'fs';

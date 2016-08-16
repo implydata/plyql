@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-/// <reference path="../typings/express/express.d.ts" />
-/// <reference path="../typings/body-parser/body-parser.d.ts" />
-/// <reference path="../typings/compression/compression.d.ts" />
-
-import * as Q from 'q';
 import { Timezone } from "chronoshift";
 import * as http from 'http';
 import * as express from 'express';
