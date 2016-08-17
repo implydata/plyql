@@ -25,6 +25,8 @@ const TEST_PORT = 18082;
 var child;
 
 describe('json-server', () => {
+  this.timeout(10000);
+
   before((done) => {
     child = spawn('bin/plyql', `-h 192.168.99.100 -i P2Y --json-server ${TEST_PORT}`.split(' '));
 
