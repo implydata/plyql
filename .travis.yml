@@ -1,0 +1,11 @@
+language: node_js
+node_js:
+  - "6.1"
+
+script: "./travis-test"
+
+before_install:
+  npm install -g npm@'>=3.0.0'
+
+notifications:
+  email: false
