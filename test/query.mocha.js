@@ -20,7 +20,7 @@ const { exec } = require('child_process');
 
 const druidHost = '192.168.99.100';
 
-describe('query', () => {
+describe('query', function() {
   this.timeout(10000);
 
   it('does basic query', (testComplete) => {

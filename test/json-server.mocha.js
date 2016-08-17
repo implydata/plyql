@@ -24,7 +24,7 @@ const TEST_PORT = 18082;
 
 var child;
 
-describe('json-server', () => {
+describe('json-server', function() {
   this.timeout(10000);
 
   before((done) => {
