@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-/// <reference path="../typings/node/node.d.ts" />
 /// <reference path="../typings/nopt/nopt.d.ts" />
-/// <reference path="../node_modules/plywood/build/plywood.d.ts" />
-/// <reference path="../node_modules/plywood-druid-requester/build/plywood-druid-requester.d.ts" />
 /// <reference path="../typings/table/table.d.ts" />
 
 import * as fs from 'fs';
@@ -196,12 +193,12 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
   return Q.fcall(() => {
     if (parsed.argv.original.length === 0 || parsed.help) {
       printUsage();
-      return;
+      return null;
     }
 
     if (parsed['version']) {
       printVersion();
-      return;
+      return null;
     }
 
     var verbose: boolean = parsed['verbose'];
