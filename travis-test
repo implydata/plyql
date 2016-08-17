@@ -16,6 +16,4 @@ fi
 
 mocha \
   test/basics.mocha.js \
-  test/json-server.mocha.js \
-  test/query.mocha.js \
   ;

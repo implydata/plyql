@@ -20,9 +20,7 @@ const { exec } = require('child_process');
 
 const druidHost = '192.168.99.100';
 
-describe('query', function() {
-  this.timeout(10000);
-
+describe('query', () => {
   it('does basic query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -q 'SELECT 1+1'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
