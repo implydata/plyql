@@ -5,5 +5,8 @@ node_js:
 
 script: "./travis-test"
 
+before_install:
+  npm install -g npm@'>=3.0.0'
+
 notifications:
   email: false
