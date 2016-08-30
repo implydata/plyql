@@ -46,6 +46,7 @@
     "@types/serve-static": "1.7.30",
     "chai": "3.5.0",
     "mocha": "3.0.2",
+    "node-spawn-server": "1.0.1",
     "request": "2.74.0",
     "typescript": "beta"
   },

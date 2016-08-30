@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.8.13
+
+- Allow case insensitivity
+
 ## 0.8.12
 
 - Complied with TypeScript2.0
