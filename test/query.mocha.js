@@ -17,6 +17,7 @@
 const { expect } = require('chai');
 const { sane } = require('./utils.js');
 const { exec } = require('child_process');
+const Q = require('q');
 
 const druidHost = '192.168.99.100';
 
@@ -149,5 +150,29 @@ describe('query', () => {
       testComplete();
     });
   });
+
+  it('makes a case insensitive query', () => Q.nfcall(exec,
+    `bin/plyql -h ${druidHost} -q 'SELECT pAgE as PAGE from wikipedia WHERE PAGE > "W" AND PAGE < "Y" limit 5' -o JSON`
+    )
+    .then((res) => {
+      expect(JSON.parse(res[0])).to.deep.equal([
+        {
+          "PAGE": "Wikipedia talk:WikiProject Arts"
+        },
+        {
+          "PAGE": "Winthrop, Maine"
+        },
+        {
+          "PAGE": "Wikipedia:Articles for deletion/Log/2015 September 12"
+        },
+        {
+          "PAGE": "Wikipedia:Articles for deletion/Log/2015 September 4"
+        },
+        {
+          "PAGE": "Wikipedia:Articles for deletion/Dmitry Geller"
+        }
+      ]);
+    })
+  );
 
 });
