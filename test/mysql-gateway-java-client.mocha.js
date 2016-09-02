@@ -17,7 +17,7 @@
 const { expect } = require('chai');
 const { spawn, exec } = require('child_process');
 const { readdirSync } = require('fs');
-const { sane } = require('./utils.js');
+const { sane } = require('./utils/utils.js');
 
 const TEST_PORT = 13307;
 
