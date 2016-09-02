@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.8.14
+
+- Support Druid's `regexFiltered` via new Plywood
+
 ## 0.8.13
 
 - Allow caSe insEnsitIviTy
