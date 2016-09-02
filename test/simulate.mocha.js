@@ -142,23 +142,6 @@ describe('simulate', () => {
     });
   });
 
-  it('does a group by query and respects order', () => Q.nfcall(exec,
-    `bin/plyql -h ${druidHost}:${TEST_PORT} -q 'SELECT sum(added), page, channel from wikipedia group by 2,3 limit 5'`
-    ).then((res) => {
-      expect(res[0]).to.contain(sane`
-        ┌────────────┬─────────────────┬─────────┐
-        │ sum(added) │ page            │ channel │
-        ├────────────┼─────────────────┼─────────┤
-        │ 4          │ 10 يناير        │ ar      │
-        │ 125        │ 14 أبريل        │ ar      │
-        │ 1950       │ 1582            │ ar      │
-        │ 148        │ 11 مايو         │ ar      │
-        │ 312        │ يويتشي نيشيمورا │ ar      │
-        └────────────┴─────────────────┴─────────┘
-      `)}
-    )
-  );
-
   after(() => {
     if (druidServer) druidServer.kill();
   });

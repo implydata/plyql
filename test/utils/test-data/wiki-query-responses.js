@@ -1,6 +1,6 @@
 var segmentMetadata = require("./wiki-segment-metadata").segmentMetadata;
 var groupBy = require("./wiki-group-by").channel;
-var select = require("./wiki-select").channel;
+var select = require("./wiki-select").empty;
 var timeseries = require("./wiki-timeseries").timeseries;
 
 exports.result = {
