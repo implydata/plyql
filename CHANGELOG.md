@@ -4,7 +4,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.8.13
 
-- Allow case insensitivity
+- Allow caSe insEnsitIviTy
 
 ## 0.8.12
 
