@@ -46,6 +46,20 @@ describe('simulate', () => {
       )
   );
 
+
+  it('does basic query with json output', (testComplete) => {
+    exec(`bin/plyql -h ${druidHost}:${TEST_PORT} -o json -q 'SELECT 1+1'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(JSON.parse(stdout)).to.deep.equal([
+        {
+          "1+1": 2
+        }
+      ]);
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
   it('does a topN query (group by with limit)', () => Q.nfcall(exec,
     `bin/plyql -h ${druidHost}:${TEST_PORT} -q 'select channel from wikipedia group by channel limit 3;'`
     ).then((res) => {
@@ -60,51 +74,6 @@ describe('simulate', () => {
       `)}
     )
   );
-
-  it('does a group by query', () => Q.nfcall(exec,
-    `bin/plyql -h ${druidHost}:${TEST_PORT} -q 'SELECT sum(added), page, channel from wikipedia group by 2,3 limit 5'`
-    ).then((res) => {
-      expect(res[0]).to.contain(sane`
-        ┌────────────┬─────────────────┬─────────┐
-        │ sum(added) │ page            │ channel │
-        ├────────────┼─────────────────┼─────────┤
-        │ 4          │ 10 يناير        │ ar      │
-        │ 125        │ 14 أبريل        │ ar      │
-        │ 1950       │ 1582            │ ar      │
-        │ 148        │ 11 مايو         │ ar      │
-        │ 312        │ يويتشي نيشيمورا │ ar      │
-        └────────────┴─────────────────┴─────────┘
-      `)}
-    )
-  );
-
-  it('does basic query', (testComplete) => {
-    exec(`bin/plyql -h ${druidHost}:${TEST_PORT} -q 'SELECT 1+1'`, (error, stdout, stderr) => {
-      expect(error).to.equal(null);
-      expect(stdout).to.contain(sane`
-        ┌─────┐
-        │ 1+1 │
-        ├─────┤
-        │ 2   │
-        └─────┘
-      `);
-      expect(stderr).to.equal('');
-      testComplete();
-    });
-  });
-
-  it('does basic query with json output', (testComplete) => {
-    exec(`bin/plyql -h ${druidHost}:${TEST_PORT} -o json -q 'SELECT 1+1'`, (error, stdout, stderr) => {
-      expect(error).to.equal(null);
-      expect(JSON.parse(stdout)).to.deep.equal([
-        {
-          "1+1": 2
-        }
-      ]);
-      expect(stderr).to.equal('');
-      testComplete();
-    });
-  });
 
   it('does a SELECT query with empty result', (testComplete) => {
     exec(`bin/plyql -h ${druidHost}:${TEST_PORT} -q 'SELECT page, SUM(count) AS 'Count' FROM wikipedia WHERE channel = "blah" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
@@ -172,6 +141,23 @@ describe('simulate', () => {
       testComplete();
     });
   });
+
+  it('does a group by query and respects order', () => Q.nfcall(exec,
+    `bin/plyql -h ${druidHost}:${TEST_PORT} -q 'SELECT sum(added), page, channel from wikipedia group by 2,3 limit 5'`
+    ).then((res) => {
+      expect(res[0]).to.contain(sane`
+        ┌────────────┬─────────────────┬─────────┐
+        │ sum(added) │ page            │ channel │
+        ├────────────┼─────────────────┼─────────┤
+        │ 4          │ 10 يناير        │ ar      │
+        │ 125        │ 14 أبريل        │ ar      │
+        │ 1950       │ 1582            │ ar      │
+        │ 148        │ 11 مايو         │ ar      │
+        │ 312        │ يويتشي نيشيمورا │ ar      │
+        └────────────┴─────────────────┴─────────┘
+      `)}
+    )
+  );
 
   after(() => {
     if (druidServer) druidServer.kill();
