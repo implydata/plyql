@@ -16,7 +16,7 @@
 
 const { expect } = require('chai');
 const { spawn, exec } = require('child_process');
-const { sane } = require('./utils.js');
+const { sane } = require('./utils/utils.js');
 
 var TEST_PORT = 13307;
 var CONN = `--host=127.0.0.1 --port=${TEST_PORT}`;
