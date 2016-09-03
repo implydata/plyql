@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.8.15
+
+- More tests
+- General support for `*Filtered` dimensions specs
+
 ## 0.8.14
 
 - Support Druid's `regexFiltered` via new Plywood

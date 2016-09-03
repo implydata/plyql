@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { Timezone } from "chronoshift";
 import * as http from 'http';
 import * as express from 'express';
 import { Request, Response } from 'express';
@@ -41,7 +40,7 @@ export function createJSONServer(port: number, queryProcessor: JSONQueryProcesso
   });
 
   app.use(bodyParser.json());
-  
+
   // Regular PlyQL route
   app.post('/plyql', (req: Request, res: Response) => {
     var { sql } = req.body;
