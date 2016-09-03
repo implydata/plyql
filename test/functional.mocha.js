@@ -15,7 +15,7 @@
  */
 
 const { expect } = require('chai');
-const { sane } = require('./utils.js');
+const { sane } = require('./utils/utils.js');
 const { exec } = require('child_process');
 const Q = require('q');
 
@@ -173,6 +173,23 @@ describe('query', () => {
         }
       ]);
     })
+  );
+
+  it('does a group by query and respects order', () => Q.nfcall(exec,
+    `bin/plyql -h ${druidHost} -q 'SELECT sum(added), page from wikipedia group by 2 limit 5'`
+    ).then((res) => {
+      expect(res[0]).to.contain(sane`
+        ┌────────────┬─────────────────────────────────┐
+        │ sum(added) │ page                            │
+        ├────────────┼─────────────────────────────────┤
+        │ 1940       │ !T.O.O.H.!                      │
+        │ 68         │ "The Secret Life of..."         │
+        │ 4717       │ '''Kertomus Venetsiasta''' 1977 │
+        │ 1612       │ 'Ajde Jano                      │
+        │ 30         │ 'Alî Sharî'atî                  │
+        └────────────┴─────────────────────────────────┘
+      `)}
+    )
   );
 
 });

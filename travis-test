@@ -16,4 +16,4 @@ fi
 
 mocha \
   test/basics.mocha.js \
-  ;
+  test/simulate.mocha.js
