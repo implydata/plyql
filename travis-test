@@ -12,7 +12,7 @@ if grep -rq 'it\.only' ./test
     exit 1
 fi
 
-./prepublish
+npm run compile
 
 mocha \
   test/basics.mocha.js \

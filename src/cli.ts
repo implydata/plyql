@@ -19,15 +19,11 @@
 
 import * as fs from 'fs';
 import * as path from "path";
-import * as Q from 'q';
+import * as Q from 'q-tsc';
 import * as nopt from "nopt";
 import table, { getBorderCharacters } from 'table';
 
-import { WallTime, Timezone, Duration, parseInterval } from "chronoshift";
-if (!WallTime.rules) {
-  var tzData = require("chronoshift/lib/walltime/walltime-data.js");
-  WallTime.init(tzData.rules, tzData.zones);
-}
+import { Timezone, parseInterval } from "chronoshift";
 
 import { $, Expression, Datum, Dataset, PlywoodValue, TimeRange,
   External, DruidExternal, AttributeJSs, SQLParse, version } from "plywood";

@@ -18,4 +18,5 @@ mocha
 echo "Trying to publish..."
 
 script/version-bump
+npm run compile
 npm publish

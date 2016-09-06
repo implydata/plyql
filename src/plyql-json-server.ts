@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Q from 'q-tsc';
 import { Timezone } from "chronoshift";
 import { Expression, Datum, PlywoodValue, Dataset } from "plywood";
 import { createJSONServer, JSONParameters } from './json-server';
