@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.8.17
+
+- Fixed case insensitivity bug in introspection queries
+
 ## 0.8.16
 
 - Using moment-timezone
