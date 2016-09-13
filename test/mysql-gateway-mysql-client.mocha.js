@@ -17,6 +17,7 @@
 const { expect } = require('chai');
 const { spawn, exec } = require('child_process');
 const { sane } = require('./utils/utils.js');
+const spawnServer = require('node-spawn-server');
 
 var TEST_PORT = 13307;
 var CONN = `--host=127.0.0.1 --port=${TEST_PORT}`;
@@ -26,20 +27,8 @@ var child;
 
 describe('mysql-gateway-mysql-client', () => {
   before((done) => {
-    child = spawn('bin/plyql', `-h 192.168.99.100 -i P2Y --experimental-mysql-gateway ${TEST_PORT}`.split(' '));
-
-    child.stderr.on('data', (data) => {
-      throw new Error(data.toString());
-    });
-
-    child.stdout.on('data', (data) => {
-      data = data.toString();
-      //console.log('GATEWAY:', data);
-      if (data.indexOf(`port: ${TEST_PORT}`) !== -1) {
-        done();
-      }
-    });
-
+    child = spawnServer(`bin/plyql -h localhost --experimental-mysql-gateway ${TEST_PORT}`);
+    child.onHook(`port: ${TEST_PORT}`, done);
   });
 
   it('does basic query', (testComplete) => {
@@ -104,6 +93,115 @@ describe('mysql-gateway-mysql-client', () => {
       expect(stderr).to.equal('');
       testComplete();
     });
+  });
+
+  var assert = (name, query, stdOutFn, complete) => {
+    exec(`mysql ${CONN} -e "${query}"`, (error, stdout, stderr) => {
+      expect(error, name).to.equal(null);
+      expect(stdOutFn(stdout), name).to.equal(true);
+      expect(stderr, name).to.equal('');
+      if (complete) complete();
+    });
+  };
+
+  it('regression tests, information schema', (testComplete) => {
+    var query1 = sane`
+      SELECT table_name, column_name
+      FROM information_schema.COLUMNS
+      WHERE data_type='' AND table_schema=''
+    `;
+    var query2 = sane`
+      SELECT table_name, column_name
+      FROM information_schema.COLUMNS
+      WHERE data_type='enum' AND table_schema='plyql1'
+    `;
+
+    var query2Lower = sane`
+      SELECT table_name, column_name
+      FROM information_schema.columns
+      WHERE data_type='enum' AND table_schema='plyql1'
+    `;
+
+    var query3 = sane`
+      SELECT table_collation FROM information_schema.TABLES WHERE table_name='wikipedia'
+    `;
+
+    var query3Lower = sane`
+      SELECT table_collation FROM information_schema.tables WHERE table_name='wikipedia'
+    `;
+
+    var query4 = sane`
+      DESCRIBE wikipedia
+    `;
+
+    assert('information schema.columns 1', query1, (stdOut) => stdOut === '');
+    assert('information schema.columns 2', query2, (stdOut) => stdOut === '');
+    assert('information schema.columns 2 lower', query2Lower, (stdOut) => stdOut === '');
+
+    assert('information schema.tables', query3, (stdOut) => stdOut.indexOf('utf8_general_ci') !== -1);
+    assert('information schema.tables lower', query3Lower, (stdOut) => stdOut.indexOf('utf8_general_ci') !== -1);
+
+    assert('describe', query4, (stdOut) => stdOut.indexOf(sane`
+      Field	Type	Null	Key	Default	Extra
+      __time	timestamp	YES		NULL	
+      added	double	YES		NULL	
+      channel	varchar(255)	YES		NULL	
+      cityName	varchar(255)	YES		NULL	
+      comment	varchar(255)	YES		NULL	
+      commentLength	varchar(255)	YES		NULL	
+      commentLengthStr	varchar(255)	YES		NULL	
+      count	double	YES		NULL	
+      countryIsoCode	varchar(255)	YES		NULL	
+      countryName	varchar(255)	YES		NULL	
+      deleted	double	YES		NULL	
+      delta	double	YES		NULL	
+      deltaBucket100	varchar(255)	YES		NULL	
+      deltaByTen	double	YES		NULL	
+      delta_hist	double	YES		NULL	
+      isAnonymous	varchar(255)	YES		NULL	
+      isMinor	varchar(255)	YES		NULL	
+      isNew	varchar(255)	YES		NULL	
+      isRobot	varchar(255)	YES		NULL	
+      isUnpatrolled	varchar(255)	YES		NULL	
+      max_delta	double	YES		NULL	
+      metroCode	varchar(255)	YES		NULL	
+      min_delta	double	YES		NULL	
+      namespace	varchar(255)	YES		NULL	
+      page	varchar(255)	YES		NULL	
+      page_unique	varchar(255)	YES		NULL	
+      regionIsoCode	varchar(255)	YES		NULL	
+      regionName	varchar(255)	YES		NULL	
+      sometimeLater	varchar(255)	YES		NULL	
+      user	varchar(255)	YES		NULL	
+      userChars	varchar(255)	YES		NULL	
+      user_theta	varchar(255)	YES		NULL	
+      user_unique	varchar(255)	YES		NULL
+    `) !== -1, testComplete)
+  });
+
+  it.skip('quarters', (testComplete) => {
+    var quarter = sane`
+      SELECT QUARTER(wikipedia.__time) AS qr___time_ok,
+      SUM(wikipedia.added) AS sum_added_ok
+      FROM wikipedia
+      GROUP BY 1
+    `;
+
+    assert('information schema.columns 1', quarter, (stdOut) => stdOut.indexOf(sane`
+      qr___time_ok	sum_added_ok
+      3	97393744
+      `) !== -1, testComplete);
+    
+    var quarterWithYear = sane`
+    SELECT SUM(wikipedia.added) AS sum_added_ok,
+    ADDDATE( CONCAT( 
+              DATE_FORMAT( wikipedia.__time, '%Y-' ), 
+              (3*(QUARTER(wikipedia.__time)-1)+1), '-01 00:00:00' ), 
+              INTERVAL 0 SECOND ) 
+      AS tqr___time_ok
+    FROM wikipedia
+    GROUP BY 2
+    `;
   });
 
   after(() => {
