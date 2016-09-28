@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-/// <reference path="../typings/nopt/nopt.d.ts" />
-/// <reference path="../typings/table/table.d.ts" />
-
 import * as fs from 'fs';
 import * as path from "path";
-import * as Q from 'q-tsc';
+import * as Q from 'q';
 import * as nopt from "nopt";
 import table, { getBorderCharacters } from 'table';
 

@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.8.19
+
+- Better type injection with TDI
+
 ## 0.8.18
 
 - Support for QUARTER

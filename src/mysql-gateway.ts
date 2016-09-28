@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-/// <reference path="../typings/mysql2/mysql2.d.ts" />
-/// <reference path="../typings/mysql2/vogievetsky-mysql2.d.ts" />
-
 import { Dataset, PlyType } from "plywood";
 import * as mysql from 'vogievetsky-mysql2';
 const TYPES: Lookup<number> = require('vogievetsky-mysql2/lib/constants/types');

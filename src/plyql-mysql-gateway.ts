@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q-tsc';
+import * as Q from 'q';
 import { Timezone } from "chronoshift";
 import { Expression, Datum, RefExpression, PlywoodValue, Dataset, Set } from "plywood";
 import { getVariablesFlatDataset } from './variables';
