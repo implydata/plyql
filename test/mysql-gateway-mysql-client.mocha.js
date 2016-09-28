@@ -25,7 +25,7 @@ var CONN = `--host=127.0.0.1 --port=${TEST_PORT}`;
 
 var child;
 
-describe.only('mysql-gateway-mysql-client', function() {
+describe('mysql-gateway-mysql-client', function() {
   before((done) => {
     child = spawnServer(`bin/plyql -h 192.168.99.100 --experimental-mysql-gateway ${TEST_PORT}`);
     child.onHook(`port: ${TEST_PORT}`, done);

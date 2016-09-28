@@ -26,28 +26,28 @@
   },
   "dependencies": {
     "body-parser": "1.15.2",
-    "chronoshift": "0.6.1",
+    "chronoshift": "0.6.2",
     "compression": "1.6.2",
     "express": "4.14.0",
     "vogievetsky-mysql2": "1.0.0-rc.1",
     "nopt": "3.0.6",
-    "plywood": "0.12.9",
+    "plywood": "0.12.11",
     "plywood-druid-requester": "1.5.5",
     "plywood-mysql-requester": "1.3.2",
     "q-tsc": "1.4.1-rev1",
-    "table": "3.7.8"
+    "table": "3.8.0"
   },
   "devDependencies": {
-    "@types/body-parser": "0.0.32",
-    "@types/compression": "0.0.32",
-    "@types/express": "4.0.32",
-    "@types/node": "6.0.38",
-    "@types/serve-static": "1.7.30",
+    "@types/body-parser": "0.0.33",
+    "@types/compression": "0.0.33",
+    "@types/express": "4.0.33",
+    "@types/node": "6.0.41",
+    "@types/serve-static": "1.7.31",
     "chai": "3.5.0",
-    "mocha": "3.0.2",
+    "mocha": "3.1.0",
     "node-spawn-server": "1.0.1",
-    "request": "2.74.0",
-    "typescript": "2.0.0"
+    "request": "2.75.0",
+    "typescript": "2.0.3"
   },
   "bin": {
     "plyql": "bin/plyql"
