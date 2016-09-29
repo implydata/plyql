@@ -147,7 +147,7 @@ describe('mysql-gateway-mysql-client', function() {
     }, testComplete)
   });
 
-  it.skip('quarters', (testComplete) => {
+  it('quarters basic', (testComplete) => {
     var quarter = sane`
       SELECT QUARTER(wikipedia.__time) AS qr___time_ok,
       SUM(wikipedia.added) AS sum_added_ok
@@ -159,17 +159,23 @@ describe('mysql-gateway-mysql-client', function() {
       qr___time_ok	sum_added_ok
       3	97393744
       `) !== -1, testComplete);
+  });
 
+  it('quarters fancy', (testComplete) => {
     var quarterWithYear = sane`
-    SELECT SUM(wikipedia.added) AS sum_added_ok,
-    ADDDATE( CONCAT(
-              DATE_FORMAT( wikipedia.__time, '%Y-' ),
-              (3*(QUARTER(wikipedia.__time)-1)+1), '-01 00:00:00' ),
-              INTERVAL 0 SECOND )
-      AS tqr___time_ok
-    FROM wikipedia
-    GROUP BY 2
+      SELECT SUM(wikipedia.added) AS sum_added_ok,
+      ADDDATE( CONCAT(
+                DATE_FORMAT( wikipedia.__time, '%Y-' ),
+                (3*(QUARTER(wikipedia.__time)-1)+1), '-01 00:00:00' ),
+                INTERVAL 0 SECOND )
+        AS tqr___time_ok
+      FROM wikipedia
+      GROUP BY 2
     `;
+
+    assert('information schema.columns 1', quarterWithYear, (stdOut) => stdOut.indexOf(sane`
+      2015-07-01 00:00:00
+      `) !== -1, testComplete);
   });
 
   after(() => {
