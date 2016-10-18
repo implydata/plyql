@@ -21,7 +21,7 @@ interface VariableRow {
   VARIABLE_VALUE: string;
 }
 
-var variablesData: VariableRow[] = [
+let variablesData: VariableRow[] = [
   { "VARIABLE_NAME": "auto_generate_certs", "VARIABLE_VALUE": "ON" },
   { "VARIABLE_NAME": "auto_increment_increment", "VARIABLE_VALUE": "1" },
   { "VARIABLE_NAME": "auto_increment_offset", "VARIABLE_VALUE": "1" },
@@ -524,12 +524,12 @@ export function getVariablesDataset() {
 }
 
 export function getVariablesFlatDataset() {
-  var attributes: Attributes = [];
-  var flatDatum: Lookup<string> = {};
-  for (var variablesDatum of variablesData) {
-    var name = variablesDatum['VARIABLE_NAME'];
-    var value: any = variablesDatum['VARIABLE_VALUE'];
-    var type: PlyType = 'STRING';
+  let attributes: Attributes = [];
+  let flatDatum: Lookup<string> = {};
+  for (let variablesDatum of variablesData) {
+    let name = variablesDatum['VARIABLE_NAME'];
+    let value: any = variablesDatum['VARIABLE_VALUE'];
+    let type: PlyType = 'STRING';
 
     // Do this crazy MySQL conversion (I am not making this up)
     if (value === 'ON' || value === 'OFF') {

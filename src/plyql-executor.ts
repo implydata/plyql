@@ -21,7 +21,7 @@ import { Expression, Datum, RefExpression, PlywoodValue, SQLParse } from "plywoo
 function upperCaseRefs(expression: Expression): Expression {
   return expression.substitute((ex) => {
     if (ex instanceof RefExpression) {
-      var v = ex.valueOf();
+      let v = ex.valueOf();
       v.name = v.name.toUpperCase();
       return new RefExpression(v);
     }
@@ -30,7 +30,7 @@ function upperCaseRefs(expression: Expression): Expression {
 }
 
 export function executeSQLParse(sqlParse: SQLParse, context: Datum, timezone: Timezone): Q.Promise<PlywoodValue> {
-  var { expression, database } = sqlParse;
+  let { expression, database } = sqlParse;
   if (database && database.toLowerCase() === 'information_schema') {
     expression = upperCaseRefs(expression); // the context variables are hardcoded from plyql so it makes sense to force upper here.
   }

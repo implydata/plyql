@@ -28,7 +28,7 @@ export interface ProperDruidRequesterOptions {
 }
 
 export function properDruidRequesterFactory(options: ProperDruidRequesterOptions): Requester.PlywoodRequester<any> {
-  var {
+  let {
     druidHost,
     retry,
     timeout,
@@ -37,7 +37,7 @@ export function properDruidRequesterFactory(options: ProperDruidRequesterOptions
     requestDecorator
   } = options;
 
-  var druidRequester = druidRequesterFactory({
+  let druidRequester = druidRequesterFactory({
     host: druidHost,
     timeout: timeout || 30000,
     requestDecorator

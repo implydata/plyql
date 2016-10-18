@@ -102,11 +102,11 @@ export interface MySQLQueryProcessor {
 }
 
 export function createMySQLGateway(port: number, queryProcessor: MySQLQueryProcessor) {
-  var server = mysql.createServer();
+  let server = mysql.createServer();
   server.listen(port);
   console.log(`MySQL Gateway listening on port: ${port}`);
 
-  var connectionId = 0;
+  let connectionId = 0;
   server.on('connection', function(conn) {
     connectionId++;
     console.log(`New connection ${connectionId}`);
@@ -133,7 +133,7 @@ export function createMySQLGateway(port: number, queryProcessor: MySQLQueryProce
 }
 
 export function fallbackMySQLFactory(connectionUri: string) {
-  var remote = mysql.createConnection(connectionUri);
+  let remote = mysql.createConnection(connectionUri);
   remote.query('select 1 as one', (err, res) => {
     if (err) {
       console.log('Connection to real MySQL fail');
@@ -164,8 +164,8 @@ export function fallbackMySQLFactory(connectionUri: string) {
       // response to a 'select', 'show' or similar
       console.log('columns', columns.map((d: any) => `${d.name}(${d.columnType})`));
       console.log('columns', columns);
-      var n = Math.min(5, rows.length);
-      for (var i = 0; i < n; i++) {
+      let n = Math.min(5, rows.length);
+      for (let i = 0; i < n; i++) {
         console.log(rows[i]);
       }
       if (n < rows.length) {

@@ -26,7 +26,7 @@ interface SchemataRow {
   "SQL_PATH": string;
 }
 
-var schemataData: SchemataRow[] = [
+let schemataData: SchemataRow[] = [
   {
     "CATALOG_NAME": "def",
     "SCHEMA_NAME": "information_schema",
@@ -67,7 +67,7 @@ interface TablesRow {
   TABLE_COMMENT: string;
 }
 
-var tablesData: TablesRow[] = [
+let tablesData: TablesRow[] = [
   {
     "TABLE_CATALOG": "def",
     "TABLE_SCHEMA": "information_schema",
@@ -190,7 +190,7 @@ interface ColumnsRow {
   GENERATION_EXPRESSION: string;
 }
 
-var columnsData: ColumnsRow[] = [
+let columnsData: ColumnsRow[] = [
   {
     "TABLE_CATALOG": "def",
     "TABLE_SCHEMA": "information_schema",
@@ -1297,9 +1297,9 @@ function getColumnType(type: PlyType): string {
 }
 
 function addExternalToColumns(source: string, external: External, mysqlTypes: boolean): void {
-  var { attributes } = external;
-  for (var i = 0; i < attributes.length; i++) {
-    var attribute = attributes[i];
+  let { attributes } = external;
+  for (let i = 0; i < attributes.length; i++) {
+    let attribute = attributes[i];
     columnsData.push({
       "TABLE_CATALOG": "def",
       "TABLE_SCHEMA": DB_NAME,

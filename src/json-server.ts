@@ -30,7 +30,7 @@ export interface JSONQueryProcessor {
 }
 
 export function createJSONServer(port: number, queryProcessor: JSONQueryProcessor): void {
-  var app = express();
+  let app = express();
   app.disable('x-powered-by');
 
   app.use(compress());
@@ -43,7 +43,7 @@ export function createJSONServer(port: number, queryProcessor: JSONQueryProcesso
 
   // Regular PlyQL route
   app.post('/plyql', (req: Request, res: Response) => {
-    var { sql } = req.body;
+    let { sql } = req.body;
 
     if (typeof sql !== "string") {
       res.status(400).json({ error: "'sql' must be a string" });
@@ -56,7 +56,7 @@ export function createJSONServer(port: number, queryProcessor: JSONQueryProcesso
 
   // Extra Plywood route
   app.post('/plywood', (req: Request, res: Response) => {
-    var { expression } = req.body;
+    let { expression } = req.body;
 
     if (typeof expression === "undefined") {
       res.status(400).json({ error: "'expression' must be defined" });
@@ -72,7 +72,7 @@ export function createJSONServer(port: number, queryProcessor: JSONQueryProcesso
     res.json({ error: err.message });
   });
 
-  var server = http.createServer(app);
+  let server = http.createServer(app);
 
   server.on('error', (error: any) => {
     if (error.syscall !== 'listen') {
@@ -97,7 +97,7 @@ export function createJSONServer(port: number, queryProcessor: JSONQueryProcesso
   });
 
   server.on('listening', () => {
-    var address = server.address();
+    let address = server.address();
     console.log('PlyQL server listening on port: ' + address.port);
   });
 

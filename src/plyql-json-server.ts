@@ -16,20 +16,21 @@
 
 import * as Q from 'q';
 import { Timezone } from "chronoshift";
-import { Expression, Datum, PlywoodValue, Dataset } from "plywood";
+import { Expression, Datum, PlywoodValue, Dataset, SQLParse } from "plywood";
 import { createJSONServer, JSONParameters } from './json-server';
 import { executeSQLParse, executePlywood } from "./plyql-executor";
 
 export function plyqlJSONServer(port: number, context: Datum, timezone: Timezone): void {
 
   createJSONServer(port, (parameters: JSONParameters, res: any) => {
-    var { sql, expression } = parameters;
+    let { sql, expression } = parameters;
 
-    var resultPromise: Q.Promise<PlywoodValue>;
+    let resultPromise: Q.Promise<PlywoodValue>;
 
     if (expression) {
+      let ex: Expression;
       try {
-        var ex = Expression.fromJSLoose(expression);
+        ex = Expression.fromJSLoose(expression);
       } catch (e) {
         res.status(400).send({ error: e.message });
         return;
@@ -37,8 +38,9 @@ export function plyqlJSONServer(port: number, context: Datum, timezone: Timezone
 
       resultPromise = executePlywood(ex, context, timezone);
     } else {
+      let sqlParse: SQLParse;
       try {
-        var sqlParse = Expression.parseSQL(sql);
+        sqlParse = Expression.parseSQL(sql);
       } catch (e) {
         res.status(400).send({ error: e.message });
         return;

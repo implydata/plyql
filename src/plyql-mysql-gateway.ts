@@ -16,7 +16,7 @@
 
 import * as Q from 'q';
 import { Timezone } from "chronoshift";
-import { Expression, Datum, RefExpression, PlywoodValue, Dataset, Set } from "plywood";
+import { Expression, Datum, PlywoodValue, Dataset, Set, SQLParse } from "plywood";
 import { getVariablesFlatDataset } from './variables';
 import { columnToMySQL, MySQLResult, dateToSQL, createMySQLGateway, fallbackMySQLFactory, MySQLParameters } from './mysql-gateway';
 import { executeSQLParse } from "./plyql-executor";
@@ -38,13 +38,13 @@ function printError(sql: string, err: Error): void {
 export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezone, fallbackURI: string): void {
   // fallbackURI is something like 'mysql://root:@192.168.99.100/plywood_test';
 
-  var fallbackMySQL = fallbackURI ? fallbackMySQLFactory(fallbackURI) : null;
+  let fallbackMySQL = fallbackURI ? fallbackMySQLFactory(fallbackURI) : null;
 
   createMySQLGateway(port, (parameters: MySQLParameters, conn: any): void => {
-    var { sql, connectionId } = parameters;
+    let { sql, connectionId } = parameters;
     Q.fcall(() => {
-      var myContext = context;
-      var match: string[];
+      let myContext = context;
+      let match: string[];
 
       // Deal with "SELECT @@blah LIMIT 1" by de-sugaring
       if ((/SELECT\s+@@/i).test(sql)) {
@@ -67,8 +67,9 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
         }
       }
 
+      let sqlParse: SQLParse;
       try {
-        var sqlParse = Expression.parseSQL(sql);
+        sqlParse = Expression.parseSQL(sql);
       } catch (e) {
         printError(sql, e);
         return {
@@ -125,12 +126,12 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
           break;
 
         case 'dataset':
-          var dataset = result.dataset;
-          var plyColumns = dataset.getColumns().map(c => columnToMySQL(c, result.table));
-          var plyRows = dataset.flatten().map(row => {
-            var newRow: any = {};
-            for (var k in row) {
-              var v = row[k];
+          let dataset = result.dataset;
+          let plyColumns = dataset.getColumns().map(c => columnToMySQL(c, result.table));
+          let plyRows = dataset.flatten().map(row => {
+            let newRow: any = {};
+            for (let k in row) {
+              let v = row[k];
 
               // Kill ranges
               if (v && v.start) v = v.start;
@@ -150,8 +151,8 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
           break;
 
         case 'connectionId':
-          var name = result.name;
-          var row: any = {};
+          let name = result.name;
+          let row: any = {};
           row[name] = connectionId;
           conn.writeTextResult([row], [
             {

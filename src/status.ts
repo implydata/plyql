@@ -21,7 +21,7 @@ interface StatusRow {
   VARIABLE_VALUE: string;
 }
 
-var statusData: StatusRow[] = [
+let statusData: StatusRow[] = [
   { "VARIABLE_NAME": "Aborted_clients", "VARIABLE_VALUE": "0" },
   { "VARIABLE_NAME": "Aborted_connects", "VARIABLE_VALUE": "0" },
   { "VARIABLE_NAME": "Binlog_cache_disk_use", "VARIABLE_VALUE": "0" },
