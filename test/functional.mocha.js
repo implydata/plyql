@@ -70,7 +70,11 @@ describe('query', () => {
   it('does a SELECT query with empty result', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -q 'SELECT page, SUM(count) AS 'Count' FROM wikipedia WHERE channel = "blah" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(stdout).to.equal('\n');
+      expect(stdout).to.contain(sane`
+        ┌──────┬───────┐
+        │ page │ Count │
+        └──────┴───────┘
+      `);
       expect(stderr).to.equal('');
       testComplete();
     });
@@ -190,6 +194,13 @@ describe('query', () => {
         └────────────┴─────────────────────────────────┘
       `)}
     )
+  );
+
+  it('respects bounds', () => Q.nfcall(exec,
+    `bin/plyql -h ${druidHost} -q 'SELECT count(*) FROM wikipedia WHERE __time BETWEEN "2015-09-12 00:46:00" AND "2015-09-12 00:48:00"'`
+    ).then((res) => {
+      expect(res[0]).to.contain('409')
+    })
   );
 
 });

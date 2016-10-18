@@ -29,6 +29,7 @@ import { properDruidRequesterFactory } from "./requester";
 import { executeSQLParse } from "./plyql-executor";
 
 import { getVariablesDataset } from './variables';
+import { getStatusDataset } from './status';
 import { addExternal, getSchemataDataset, getTablesDataset, getColumnsDataset } from './schema';
 
 function formatNull(v: any): any {
@@ -362,6 +363,10 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
             var variablesDataset = getVariablesDataset();
             context['GLOBAL_VARIABLES'] = variablesDataset;
             context['SESSION_VARIABLES'] = variablesDataset;
+
+            var statusDataset = getStatusDataset();
+            context['GLOBAL_STATUS'] = statusDataset;
+            context['SESSION_STATUS'] = statusDataset;
           }
 
           return Q.all(sources.map(source => {

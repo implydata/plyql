@@ -6,6 +6,11 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 - Better type injection with TDI
 
+## 0.8.19
+
+- New plywood supports SHOW STATUS
+- Fix BETWEEN inclusiveness
+
 ## 0.8.18
 
 - Support for QUARTER

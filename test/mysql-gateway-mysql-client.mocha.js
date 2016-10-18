@@ -61,6 +61,15 @@ describe('mysql-gateway-mysql-client', function() {
     });
   });
 
+  it('does a show status query', (testComplete) => {
+    exec(`mysql ${CONN} -e 'SHOW SESSION STATUS LIKE "Ssl_cipher"'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.contain('Ssl_cipher');
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
   it('does a SELECT query', (testComplete) => {
     exec(`mysql ${CONN} -e 'SELECT page, SUM(count) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
