@@ -2,8 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
-## 0.8.19
+## 0.9.1
 
+- Using the brand new rebuilt Plywood
+- Fixes error in NOT having filter being ignored
 - Better type injection with TDI
 
 ## 0.8.19
