@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.9.2
+
+- Updated to latest Plywood with misc bug fixes
+
 ## 0.9.1
 
 - Using the brand new rebuilt Plywood
