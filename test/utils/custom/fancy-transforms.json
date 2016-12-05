@@ -1,0 +1,8 @@
+{
+  "dotify": {
+    "extractionFn": {
+      "type": "javascript",
+      "function": "function(v) { return String(v).split('').join('.'); }"
+    }
+  }
+}

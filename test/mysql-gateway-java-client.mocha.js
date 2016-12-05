@@ -21,9 +21,9 @@ const { sane } = require('./utils/utils.js');
 
 const TEST_PORT = 13307;
 
-var child;
+let child;
 
-var jars = readdirSync('test/jdbc/jar');
+let jars = readdirSync('test/jdbc/jar');
 jars = jars.filter((file) => /\.jar$/.test(file));
 if (!jars.length) throw new Error("must have at least one jar in 'test/jdbc/jar'");
 

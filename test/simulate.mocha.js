@@ -24,12 +24,12 @@ const { sane } = require('./utils/utils.js');
 
 const druidHost = 'localhost';
 const TEST_PORT = 28082;
-var druidServer = null;
+let druidServer = null;
 
 function startMockDruid() {
   return Q(mockDruid({
     onQuery: (query) => {
-      var queryType = query.queryType;
+      let queryType = query.queryType;
       if (queryResult[queryType]) return queryResult[queryType];
       throw new Error(`unknown query ${queryType}`);
     },

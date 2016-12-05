@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-var Q = require('q');
-var http = require('http');
-var express = require('express');
-var bodyParser = require('body-parser');
+let Q = require('q');
+let http = require('http');
+let express = require('express');
+let bodyParser = require('body-parser');
 
 function mockDruid(options) {
-  var deferred = Q.defer();
-  var port = options.port || 28082;
-  var version = options.version || '0.9.1';
+  let deferred = Q.defer();
+  let port = options.port || 28082;
+  let version = options.version || '0.9.1';
 
-  var app = express();
+  let app = express();
   app.disable('x-powered-by');
 
   app.get('/status', (req, res) => {
@@ -61,7 +61,7 @@ function mockDruid(options) {
     }
   });
 
-  var server = http.createServer(app);
+  let server = http.createServer(app);
 
   server.on('error', (error) => {
     console.log('err', error);

@@ -37,6 +37,25 @@ function formatNull(v: any): any {
   return v;
 }
 
+function loadOrParseJSON(json: string): any {
+  if (typeof json === 'undefined') return null;
+  if (typeof json !== 'string') throw new TypeError(`load or parse must get a string`);
+
+  if (json[0] === '@') {
+    try {
+      json = fs.readFileSync(json.substr(1), 'utf-8');
+    } catch (e) {
+      throw new Error(`can not load: ${json}`);
+    }
+  }
+
+  try {
+    return JSON.parse(json);
+  } catch (e) {
+    throw new Error(`can not parse: ${json}`);
+  }
+}
+
 function printUsage() {
   console.log(`
 Usage: plyql [options]
@@ -71,6 +90,8 @@ Arguments:
       --experimental-mysql-gateway [Experimental] the port on which to start the MySQL gateway server
 
       --druid-version            Assume this is the Druid version and do not query it
+      --custom-aggregations      A JSON string defining custom aggregations
+      --custom-transforms        A JSON string defining custom transforms
       --druid-context            A JSON string representing the Druid context to use
       --skip-cache               disable Druid caching
       --introspection-strategy   Druid introspection strategy
@@ -125,6 +146,8 @@ export interface CommandLineArguments {
   "force-theta"?: string[];
   "force-histogram"?: string[];
   "druid-version"?: string;
+  "custom-aggregations"?: string;
+  "custom-transforms"?: string;
   "druid-context"?: string;
   "druid-time-attribute"?: string;
   "rollup"?: boolean;
@@ -162,6 +185,8 @@ export function parseArguments(): CommandLineArguments {
       "force-theta": [String, Array],
       "force-histogram": [String, Array],
       "druid-version": String,
+      "custom-aggregations": String,
+      "custom-transforms": String,
       "druid-context": String,
       "druid-time-attribute": String,
       "rollup": Boolean,
@@ -256,17 +281,12 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
     let retry: number = parsed.hasOwnProperty('retry') ? parsed['retry'] : 2;
     let concurrent: number = parsed.hasOwnProperty('concurrent') ? parsed['concurrent'] : 2;
 
-    // Druid Context
-    let druidContext: Druid.Context = {};
-    if (parsed.hasOwnProperty('druid-context')) {
-      try {
-        // Parse the parsed!
-        druidContext = JSON.parse(parsed['druid-context']);
-      } catch (e) {
-        throw new Error(`can not parse druid-context as JSON ${parsed['druid-context']})`);
-      }
-    }
+    let customAggregations: any = loadOrParseJSON(parsed['custom-aggregations']);
+    let customTransforms: any = loadOrParseJSON(parsed['custom-transforms']);
 
+    // Druid Context ---------------------------
+
+    let druidContext: Druid.Context = loadOrParseJSON(parsed['druid-context']) || {};
     druidContext.timeout = timeout;
 
     if (parsed['skip-cache']) {
@@ -382,6 +402,8 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
               allowSelectQueries: true,
               introspectionStrategy: parsed['introspection-strategy'],
               context: druidContext,
+              customAggregations,
+              customTransforms,
               filter,
               attributeOverrides
             }, requester)

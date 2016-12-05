@@ -19,11 +19,11 @@ const { spawn, exec } = require('child_process');
 const { sane } = require('./utils/utils.js');
 const spawnServer = require('node-spawn-server');
 
-var TEST_PORT = 13307;
-var CONN = `--host=127.0.0.1 --port=${TEST_PORT}`;
+let TEST_PORT = 13307;
+let CONN = `--host=127.0.0.1 --port=${TEST_PORT}`;
 //CONN = `--host=192.168.99.100 -u root`; // Real datazoo MySQL
 
-var child;
+let child;
 
 describe('mysql-gateway-mysql-client', function() {
   before((done) => {
@@ -104,7 +104,7 @@ describe('mysql-gateway-mysql-client', function() {
     });
   });
 
-  var assert = (name, query, stdOutFn, complete) => {
+  let assert = (name, query, stdOutFn, complete) => {
     exec(`mysql ${CONN} -e "${query}"`, (error, stdout, stderr) => {
       expect(error, name).to.equal(null);
       expect(stdOutFn(stdout), name).to.equal(true);
@@ -114,32 +114,32 @@ describe('mysql-gateway-mysql-client', function() {
   };
 
   it('regression tests, information schema', (testComplete) => {
-    var query1 = sane`
+    let query1 = sane`
       SELECT table_name, column_name
       FROM information_schema.COLUMNS
       WHERE data_type='' AND table_schema=''
     `;
-    var query2 = sane`
+    let query2 = sane`
       SELECT table_name, column_name
       FROM information_schema.COLUMNS
       WHERE data_type='enum' AND table_schema='plyql1'
     `;
 
-    var query2Lower = sane`
+    let query2Lower = sane`
       SELECT table_name, column_name
       FROM information_schema.columns
       WHERE data_type='enum' AND table_schema='plyql1'
     `;
 
-    var query3 = sane`
+    let query3 = sane`
       SELECT table_collation FROM information_schema.TABLES WHERE table_name='wikipedia'
     `;
 
-    var query3Lower = sane`
+    let query3Lower = sane`
       SELECT table_collation FROM information_schema.tables WHERE table_name='wikipedia'
     `;
 
-    var query4 = sane`
+    let query4 = sane`
       DESCRIBE wikipedia
     `;
 
@@ -157,7 +157,7 @@ describe('mysql-gateway-mysql-client', function() {
   });
 
   it('quarters basic', (testComplete) => {
-    var quarter = sane`
+    let quarter = sane`
       SELECT QUARTER(wikipedia.__time) AS qr___time_ok,
       SUM(wikipedia.added) AS sum_added_ok
       FROM wikipedia
@@ -171,7 +171,7 @@ describe('mysql-gateway-mysql-client', function() {
   });
 
   it('quarters fancy', (testComplete) => {
-    var quarterWithYear = sane`
+    let quarterWithYear = sane`
       SELECT SUM(wikipedia.added) AS sum_added_ok,
       ADDDATE( CONCAT(
                 DATE_FORMAT( wikipedia.__time, '%Y-' ),

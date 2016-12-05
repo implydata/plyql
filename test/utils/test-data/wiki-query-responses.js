@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-var segmentMetadata = require("./wiki-segment-metadata").segmentMetadata;
-var groupBy = require("./wiki-group-by").channel;
-var select = require("./wiki-select").empty;
-var timeseries = require("./wiki-timeseries").timeseries;
+let segmentMetadata = require("./wiki-segment-metadata").segmentMetadata;
+let groupBy = require("./wiki-group-by").channel;
+let select = require("./wiki-select").empty;
+let timeseries = require("./wiki-timeseries").timeseries;
 
 exports.result = {
   "segmentMetadata": { json: segmentMetadata },

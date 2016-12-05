@@ -21,7 +21,9 @@ const Q = require('q');
 
 const druidHost = '192.168.99.100';
 
-describe('query', () => {
+describe('query', function() {
+  this.timeout(5000);
+
   it('does basic query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -q 'SELECT 1+1'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
@@ -201,6 +203,47 @@ describe('query', () => {
     ).then((res) => {
       expect(res[0]).to.contain('409')
     })
+  );
+
+  it('works with custom transforms from command line', () => {
+    // Note: String.fromCharCode(46) === "." and String.fromCharCode() === ""
+    // Figuring out escaping is too hard
+    let ct = `{
+      "dotify": {
+        "extractionFn": {
+          "type": "javascript",
+          "function": "function(v) { return String(v).split(String.fromCharCode()).join(String.fromCharCode(46)); }"
+        }
+      }
+    }`;
+
+    return Q.nfcall(exec,
+        `bin/plyql -h ${druidHost} --custom-transforms '${ct}' -q 'SELECT CUSTOM_TRANSFORM(page, dotify) FROM wikipedia GROUP BY 1 LIMIT 5'`
+      )
+      .then((res) => {
+        expect(res[0]).to.contain(".T.h.e. .S.e.c.r.e.t. .L.i.f.e. .o.f.......");
+      })
+    }
+  );
+
+  it('works with custom transforms from file', () => {
+      return Q.nfcall(exec,
+        `bin/plyql -h ${druidHost} --custom-transforms @test/utils/custom/fancy-transforms.json -q 'SELECT CUSTOM_TRANSFORM(page, dotify) FROM wikipedia GROUP BY 1 LIMIT 5'`
+      )
+        .then((res) => {
+          expect(res[0]).to.contain(".T.h.e. .S.e.c.r.e.t. .L.i.f.e. .o.f.......");
+        })
+    }
+  );
+
+  it('works with custom aggregations from file', () => {
+      return Q.nfcall(exec,
+        `bin/plyql -h ${druidHost} --custom-aggregations @test/utils/custom/fancy-aggregations.json -q 'SELECT channel, CUSTOM_AGGREGATE("addedMod1337") FROM wikipedia GROUP BY 1 LIMIT 5'`
+      )
+        .then((res) => {
+          expect(res[0]).to.contain("1097");
+        })
+    }
   );
 
 });

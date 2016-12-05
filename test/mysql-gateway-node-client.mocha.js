@@ -20,8 +20,8 @@ const mysql = require('vogievetsky-mysql2');
 
 const TEST_PORT = 13307;
 
-var child;
-var connection;
+let child;
+let connection;
 
 describe('mysql-gateway-node-client', () => {
   before((done) => {

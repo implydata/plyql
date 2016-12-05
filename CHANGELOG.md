@@ -2,6 +2,12 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.9.7
+
+- Added `--custom-aggregations` option: A JSON string defining custom aggregations
+- Added `--custom-transforms` option: A JSON string defining custom transforms
+- Added ability to load `--druid-context` from file using `@filename` notation
+
 ## 0.9.6
 
 - Plywood version bump

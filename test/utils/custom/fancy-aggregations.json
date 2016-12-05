@@ -1,0 +1,11 @@
+{
+  "addedMod1337": {
+    "aggregation": {
+      "type": "javascript",
+      "fieldNames": ["added"],
+      "fnAggregate": "function(current, added) { return (current + added) % 1337; }",
+      "fnCombine": "function(pa, pb) { return (pa + pb) % 1337; }",
+      "fnReset": "function() { return 0; }"
+    }
+  }
+}

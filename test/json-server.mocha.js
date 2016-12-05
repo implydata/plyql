@@ -24,7 +24,7 @@ const { $, ply, r } = require('plywood');
 
 const TEST_PORT = 18082;
 
-var child;
+let child;
 const druidHost = '192.168.99.100';
 
 describe('json-server', () => {
@@ -36,7 +36,7 @@ describe('json-server', () => {
   it('works with GET /health', () => Q.nfcall(request.get, `http://localhost:${TEST_PORT}/health`)
     .then((res) => {
       expect(res[0].statusCode).to.equal(200);
-      var body = res[1];
+      let body = res[1];
       expect(body).to.contain('I am healthy @');
     })
   );
@@ -50,7 +50,7 @@ describe('json-server', () => {
     })
     .then((res) => {
       expect(res[0].statusCode).to.equal(200);
-      var body = res[1];
+      let body = res[1];
       expect(body.result).to.deep.equal([{ "test": 2 }]);
     })
   );
@@ -64,7 +64,7 @@ describe('json-server', () => {
     })
     .then((res) => {
       expect(res[0].statusCode).to.equal(200);
-      var body = res[1];
+      let body = res[1];
       expect(body.result).to.deep.equal([{ "test": "Которувоч" }]);
     })
   );
@@ -78,7 +78,7 @@ describe('json-server', () => {
     })
     .then((res) => {
       expect(res[0].statusCode).to.equal(200);
-      var body = res[1];
+      let body = res[1];
       expect(body.result).to.to.deep.equal([
         {
           "Count": 255,
@@ -105,7 +105,7 @@ describe('json-server', () => {
     })
     .then((res) => {
       expect(res[0].statusCode).to.equal(400);
-      var body = res[1];
+      let body = res[1];
       expect(body.error).to.contain('SQL parse error');
     })
   );
@@ -119,7 +119,7 @@ describe('json-server', () => {
     })
     .then((res) => {
       expect(res[0].statusCode).to.equal(400);
-      var body = res[1];
+      let body = res[1];
       expect(body.error).to.contain('Unsupported SQL verb USE');
     })
   );
@@ -133,21 +133,21 @@ describe('json-server', () => {
     })
     .then((res) => {
       expect(res[0].statusCode).to.equal(500);
-      var body = res[1];
+      let body = res[1];
       expect(body.error).to.contain('could not');
       expect(body.error).to.contain('wikipediaz');
     })
   );
 
   it('works complex expression', () => {
-    var expression = $('wikipedia')
+    let expression = $('wikipedia')
       .filter('$channel == "en"')
       .split('$page', 'Page')
       .apply('Count', '$wikipedia.sum($count)')
       .sort('$Count', 'descending')
       .limit(3);
 
-    var options = {
+    let options = {
       url: `http://localhost:${TEST_PORT}/plywood`,
       json: {
         expression: expression.toJS()
@@ -156,7 +156,7 @@ describe('json-server', () => {
 
     return Q.nfcall(request.post, options)
     .then((res) => {
-      var body = res[1];
+      let body = res[1];
       expect(body.result).to.deep.equal([
         {
           "Count": 255,
@@ -175,14 +175,14 @@ describe('json-server', () => {
   });
 
   it('works case insensitive expression', () => {
-    var expression = $('wikipedia')
+    let expression = $('wikipedia')
       .filter('i$cHannel == "en"')
       .split('i$PaGe', 'Page')
       .apply('Count', '$wikipedia.sum($count)')
       .sort('i$counT', 'descending')
       .limit(3);
 
-    var options = {
+    let options = {
       url: `http://localhost:${TEST_PORT}/plywood`,
       json: {
         expression: expression.toJS()
@@ -191,7 +191,7 @@ describe('json-server', () => {
 
     return Q.nfcall(request.post, options)
       .then((res) => {
-        var body = res[1];
+        let body = res[1];
         expect(body.result).to.deep.equal([
           {
             "Count": 255,
