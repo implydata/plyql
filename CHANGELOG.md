@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.9.8
+
+- Added better node lookup to handle either `node` or `nodejs` for the Debian people
+
 ## 0.9.7
 
 - Added `--custom-aggregations` option: A JSON string defining custom aggregations
