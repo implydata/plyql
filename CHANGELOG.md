@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.9.9
+
+- Added missing realpath
+
 ## 0.9.8
 
 - Added better node lookup to handle either `node` or `nodejs` for the Debian people
