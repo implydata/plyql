@@ -137,9 +137,9 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
               if (v && v.start) v = v.start;
 
               if (v && v.toISOString) {
-                v = dateToSQL(v);
+                v = Timezone.formatDateWithTimezone(v, timezone);
               } else if (Set.isSet(v)) {
-                v = v.toString();
+                v = v.toString(timezone); // plyql does not yet support set times though
               } else if (typeof v === 'boolean') {
                 v = Number(v);
               }

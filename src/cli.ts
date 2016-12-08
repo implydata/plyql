@@ -20,10 +20,10 @@ import * as Q from 'q';
 import * as nopt from "nopt";
 import table, { getBorderCharacters } from 'table';
 
-import { Timezone, parseInterval } from "chronoshift";
+import { Timezone, parseInterval, isDate } from "chronoshift";
 
 import { $, Expression, Datum, Dataset, PlywoodValue, TimeRange,
-  External, DruidExternal, AttributeJSs, SQLParse, version } from "plywood";
+  External, DruidExternal, AttributeJSs, SQLParse, version, Set } from "plywood";
 
 import { properDruidRequesterFactory } from "./requester";
 import { executeSQLParse } from "./plyql-executor";
@@ -32,8 +32,11 @@ import { getVariablesDataset } from './variables';
 import { getStatusDataset } from './status';
 import { addExternal, getSchemataDataset, getTablesDataset, getColumnsDataset } from './schema';
 
-function formatNull(v: any): any {
+function formatValue(v: any, tz: Timezone): any {
   if (v == null) return 'NULL';
+  if (isDate(v)) return Timezone.formatDateWithTimezone(v, tz);
+  if (Set.isSet(v)) return v.toString(tz);
+
   return v;
 }
 
@@ -446,7 +449,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
                     let columnNames = columns.map(c => c.name);
 
                     if (columnNames.length) {
-                      let tableData = [columnNames].concat(flatData.map(flatDatum => columnNames.map(cn => formatNull(flatDatum[cn]))));
+                      let tableData = [columnNames].concat(flatData.map(flatDatum => columnNames.map(cn => formatValue(flatDatum[cn], timezone))));
 
                       outputStr = table(tableData, {
                         border: getBorderCharacters('norc'),
@@ -460,11 +463,11 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
                     break;
 
                   case 'csv':
-                    outputStr = dataset.toCSV({ finalLineBreak: 'include' });
+                    outputStr = dataset.toCSV({ finalLineBreak: 'include', timezone });
                     break;
 
                   case 'tsv':
-                    outputStr = dataset.toTSV({ finalLineBreak: 'include' });
+                    outputStr = dataset.toTSV({ finalLineBreak: 'include', timezone });
                     break;
 
                   case 'flat':
