@@ -7,6 +7,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "strictNullChecks": false,
+    "importHelpers": true,
     "lib": ["es5"],
     "target": "es5",
     "rootDir": "src",

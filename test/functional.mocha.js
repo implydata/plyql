@@ -140,6 +140,46 @@ describe('query', function() {
     });
   });
 
+  it('respects timezone display for table', (testComplete) => {
+    exec(`bin/plyql -h ${druidHost} -Z "America/Los_Angeles" -o table -q 'SELECT TIMESTAMP("2016-04-04T01:02:03") AS T'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.contain(sane`
+        ┌───────────────────────────┐
+        │ T                         │
+        ├───────────────────────────┤
+        │ 2016-04-04T01:02:03-07:00 │
+        └───────────────────────────┘
+
+      `);
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
+  it('respects timezone display for csv', (testComplete) => {
+    exec(`bin/plyql -h ${druidHost} -Z "Asia/Kathmandu" -o csv -q 'SELECT TIMESTAMP("2016-04-04T01:02:03") AS T'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.contain(sane`
+      2016-04-04T01:02:03+05:45
+    `);
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
+
+  it('respects timezone display for tsv', (testComplete) => {
+    exec(`bin/plyql -h ${druidHost} -Z "Asia/Kathmandu" -o tsv -q 'SELECT TIMESTAMP("2016-04-04T01:02:03") AS T'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.contain(sane`
+      2016-04-04T01:02:03+05:45
+    `);
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
+
   it('passes in a custom druid context', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -v --druid-context '{"lol":1}' -q "SELECT COUNT(DISTINCT user_theta) FROM wikipedia";`, (error, stdout, stderr) => {
       expect(error).to.equal(null);

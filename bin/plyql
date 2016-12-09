@@ -1,10 +1,10 @@
 #!/bin/sh
 
 if command -v node > /dev/null 2>&1; then
-  exec `command -v node` "$(dirname `realpath $0`)/plyql.js" "$@";
+  exec `command -v node` "$(dirname `readlink -f $0`)/plyql.js" "$@";
 
 elif command -v nodejs > /dev/null 2>&1; then
-  exec `command -v nodejs` "$(dirname `realpath $0`)/plyql.js" "$@";
+  exec `command -v nodejs` "$(dirname `readlink -f $0`)/plyql.js" "$@";
 
 else
   echo "Could not find node or nodejs, please verify that it is installed.";

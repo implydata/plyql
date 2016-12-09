@@ -19,11 +19,20 @@ const { spawn, exec } = require('child_process');
 const { sane } = require('./utils/utils.js');
 const spawnServer = require('node-spawn-server');
 
-let TEST_PORT = 13307;
-let CONN = `--host=127.0.0.1 --port=${TEST_PORT}`;
+const TEST_PORT = 13307;
+const CONN = `--host=127.0.0.1 --port=${TEST_PORT}`;
 //CONN = `--host=192.168.99.100 -u root`; // Real datazoo MySQL
 
 let child;
+
+const assert = (name, query, stdOutFn, complete) => {
+  exec(`mysql ${CONN} -e "${query}"`, (error, stdout, stderr) => {
+    expect(error, name).to.equal(null);
+    expect(stdOutFn(stdout), name).to.equal(true);
+    expect(stderr, name).to.equal('');
+    if (complete) complete();
+  });
+};
 
 describe('mysql-gateway-mysql-client', function() {
   before((done) => {
@@ -104,15 +113,6 @@ describe('mysql-gateway-mysql-client', function() {
     });
   });
 
-  let assert = (name, query, stdOutFn, complete) => {
-    exec(`mysql ${CONN} -e "${query}"`, (error, stdout, stderr) => {
-      expect(error, name).to.equal(null);
-      expect(stdOutFn(stdout), name).to.equal(true);
-      expect(stderr, name).to.equal('');
-      if (complete) complete();
-    });
-  };
-
   it('regression tests, information schema', (testComplete) => {
     let query1 = sane`
       SELECT table_name, column_name
@@ -182,9 +182,46 @@ describe('mysql-gateway-mysql-client', function() {
       GROUP BY 2
     `;
 
-    assert('information schema.columns 1', quarterWithYear, (stdOut) => stdOut.indexOf(sane`
+    assert('quarterWithYear', quarterWithYear, (stdOut) => stdOut.indexOf(sane`
       2015-07-01 00:00:00
       `) !== -1, testComplete);
+  });
+
+  after(() => {
+    child.kill('SIGHUP');
+  });
+
+  it('timezone display basic (no tz provided)', (testComplete) => {
+    let query = sane`
+      SELECT max(__time) from wikipedia
+     `;
+
+    assert('respects timezones (no tz provided)', query, (stdOut) => stdOut.indexOf(sane`
+        max(__time)
+        2015-09-12 23:59:00
+      `) !== -1, testComplete
+    );
+  });
+});
+
+describe('timezones', function() {
+  this.timeout(50000);
+  before((done) => {
+    child = spawnServer(`bin/plyql -h 192.168.99.100 -Z Asia/Kathmandu --experimental-mysql-gateway ${TEST_PORT}`);
+    child.onHook(`port: ${TEST_PORT}`, done);
+ });
+
+
+  it('timezone display basic (tz different from above)', (testComplete) => {
+    let query = sane`
+      SELECT max(__time) from wikipedia
+     `;
+
+    assert('respects timezones (different from above)', query, (stdOut) => stdOut.indexOf(sane`
+        max(__time)
+        2015-09-13 05:44:00
+      `) !== -1, testComplete
+    );
   });
 
   after(() => {
