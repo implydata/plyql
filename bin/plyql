@@ -1,13 +1,17 @@
 #!/bin/sh
 
 if command -v node > /dev/null 2>&1; then
-  exec `command -v node` "$(dirname `readlink -f $0`)/plyql.js" "$@";
+  NODE=`command -v node`
 
 elif command -v nodejs > /dev/null 2>&1; then
-  exec `command -v nodejs` "$(dirname `readlink -f $0`)/plyql.js" "$@";
+  NODE=`command -v nodejs`
 
 else
   echo "Could not find node or nodejs, please verify that it is installed.";
   exit 1;
-
 fi
+
+# This is basically a platform independent way of doing `dirname `readlink -f $0` / `dirname `realpath $0`
+RUNJS=`"$NODE" -p "require('path').resolve(require('fs').realpathSync(process.argv[1]), '../../build/run.js')" "$0"`;
+
+exec "$NODE" "$RUNJS" "$@";
