@@ -82,19 +82,26 @@ describe('mysql-gateway-mysql-client', function() {
   it('does a show character set query', (testComplete) => {
     exec(`mysql ${CONN} -e 'SHOW CHARACTER SET LIKE "%utf%"'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(stdout).to.contain('utf8');
-      expect(stdout).to.contain('utf8mb4');
+      expect(stdout).to.contain('Charset	Default collation	Description	Maxlen');
+      expect(stdout).to.contain('utf8	utf8_general_ci	UTF-8 Unicode	3');
+      expect(stdout).to.contain('utf8mb4	utf8mb4_general_ci	UTF-8 Unicode	4');
+      expect(stdout).to.contain('utf16	utf16_general_ci	UTF-16 Unicode	4');
+      expect(stdout).to.contain('utf16le	utf16le_general_ci	UTF-16LE Unicode	4');
+      expect(stdout).to.contain('utf32	utf32_general_ci	UTF-32 Unicode	4');
       expect(stderr).to.equal('');
       testComplete();
     });
   });
 
   it('does a show collation query', (testComplete) => {
-    exec(`mysql ${CONN} -e 'SHOW COLLATIONS like "%latin%"'`, (error, stdout, stderr) => {
+    exec(`mysql ${CONN} -e 'SHOW COLLATION like "%latin1%"'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(stdout).to.contain('latin1');
-      expect(stdout).to.contain('latin2');
-      expect(stdout).to.contain('latin5');
+      expect(stdout).to.contain('Collation	Charset	Id	Default	Compiled	Sortlen');
+      expect(stdout).to.contain('latin1_german1_ci	latin1	5		Yes	1');
+      expect(stdout).to.contain('latin1_swedish_ci	latin1	8	Yes	Yes	1');
+      expect(stdout).to.contain('latin1_danish_ci	latin1	15		Yes	1');
+      expect(stdout).to.contain('latin1_german2_ci	latin1	31		Yes	2');
+      expect(stdout).to.contain('latin1_bin	latin1	47		Yes	1');
       expect(stderr).to.equal('');
       testComplete();
     });
