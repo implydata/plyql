@@ -1,13 +1,6 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 rm -rf build/*
 mkdir -p build
 
-node_modules/.bin/tsc \
-  --module commonjs \
-  --noImplicitAny \
-  --noEmitOnError \
-  --removeComments \
-  --noImplicitReturns \
-  --noFallthroughCasesInSwitch \
-  --outDir build src/*
+node_modules/.bin/tsc
