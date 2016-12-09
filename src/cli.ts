@@ -15,18 +15,19 @@
  */
 
 import * as fs from 'fs';
-import * as path from "path";
+import * as path from 'path';
+import * as hasOwnProp from 'has-own-prop';
 import * as Q from 'q';
-import * as nopt from "nopt";
+import * as nopt from 'nopt';
 import table, { getBorderCharacters } from 'table';
 
-import { Timezone, parseInterval, isDate } from "chronoshift";
+import { Timezone, parseInterval, isDate } from 'chronoshift';
 
 import { $, Expression, Datum, Dataset, PlywoodValue, TimeRange,
-  External, DruidExternal, AttributeJSs, SQLParse, version, Set } from "plywood";
+  External, DruidExternal, AttributeJSs, SQLParse, version, Set } from 'plywood';
 
-import { properDruidRequesterFactory } from "./requester";
-import { executeSQLParse } from "./plyql-executor";
+import { properDruidRequesterFactory } from './requester';
+import { executeSQLParse } from './plyql-executor';
 
 import { getVariablesDataset } from './variables';
 import { getStatusDataset } from './status';
@@ -35,8 +36,7 @@ import { addExternal, getSchemataDataset, getTablesDataset, getColumnsDataset } 
 function formatValue(v: any, tz: Timezone): any {
   if (v == null) return 'NULL';
   if (isDate(v)) return Timezone.formatDateWithTimezone(v, tz);
-  if (Set.isSet(v)) return v.toString(tz);
-
+  if (Set.isSet(v) || TimeRange.isTimeRange(v)) return v.toString(tz);
   return v;
 }
 
@@ -280,9 +280,9 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       timezone = Timezone.fromJS(parsed['timezone']);
     }
 
-    let timeout: number = parsed.hasOwnProperty('timeout') ? parsed['timeout'] : 180000;
-    let retry: number = parsed.hasOwnProperty('retry') ? parsed['retry'] : 2;
-    let concurrent: number = parsed.hasOwnProperty('concurrent') ? parsed['concurrent'] : 2;
+    let timeout: number = hasOwnProp(parsed, 'timeout') ? parsed['timeout'] : 180000;
+    let retry: number = hasOwnProp(parsed, 'retry') ? parsed['retry'] : 2;
+    let concurrent: number = hasOwnProp(parsed, 'concurrent') ? parsed['concurrent'] : 2;
 
     let customAggregations: any = loadOrParseJSON(parsed['custom-aggregations']);
     let customTransforms: any = loadOrParseJSON(parsed['custom-transforms']);

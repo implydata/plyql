@@ -187,10 +187,6 @@ describe('mysql-gateway-mysql-client', function() {
       `) !== -1, testComplete);
   });
 
-  after(() => {
-    child.kill('SIGHUP');
-  });
-
   it('timezone display basic (no tz provided)', (testComplete) => {
     let query = sane`
       SELECT max(__time) from wikipedia
@@ -202,6 +198,23 @@ describe('mysql-gateway-mysql-client', function() {
       `) !== -1, testComplete
     );
   });
+
+  it('timezone display range (no tz provided)', (testComplete) => {
+    let query = sane`
+      SELECT TIME_BUCKET(__time, 'P1D') AS V from wikipedia GROUP BY 1
+     `;
+
+    assert('respects timezones (no tz provided)', query, (stdOut) => stdOut.indexOf(sane`
+        V
+        2015-09-12 00:00:00
+      `) !== -1, testComplete
+    );
+  });
+
+  after(() => {
+    child.kill('SIGHUP');
+  });
+
 });
 
 describe('timezones', function() {
@@ -220,6 +233,19 @@ describe('timezones', function() {
     assert('respects timezones (different from above)', query, (stdOut) => stdOut.indexOf(sane`
         max(__time)
         2015-09-13 05:44:00
+      `) !== -1, testComplete
+    );
+  });
+
+  it('timezone display range (tz different from above)', (testComplete) => {
+    let query = sane`
+      SELECT TIME_BUCKET(__time, 'P1D') AS V from wikipedia GROUP BY 1
+     `;
+
+    assert('respects timezones (different from above)', query, (stdOut) => stdOut.indexOf(sane`
+        V
+        2015-09-12 00:00:00
+        2015-09-13 00:00:00
       `) !== -1, testComplete
     );
   });

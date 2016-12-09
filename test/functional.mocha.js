@@ -156,6 +156,22 @@ describe('query', function() {
     });
   });
 
+  it('respects timezone display of range for table', (testComplete) => {
+    exec(`bin/plyql -h ${druidHost} -Z "America/Los_Angeles" -o table -q 'SELECT TIME_RANGE(TIMESTAMP("2016-04-04T01:02:03"), P2D) AS T'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.contain(sane`
+        ┌───────────────────────────────────────────────────────┐
+        │ T                                                     │
+        ├───────────────────────────────────────────────────────┤
+        │ [2016-04-04T01:02:03-07:00,2016-04-06T01:02:03-07:00] │
+        └───────────────────────────────────────────────────────┘
+
+      `);
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
   it('respects timezone display for csv', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -Z "Asia/Kathmandu" -o csv -q 'SELECT TIMESTAMP("2016-04-04T01:02:03") AS T'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
