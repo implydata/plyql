@@ -16,7 +16,7 @@
 
 import * as Q from 'q';
 import { Timezone } from "chronoshift";
-import { Expression, Datum, PlywoodValue, Dataset, Set, SQLParse } from "plywood";
+import {Expression, Datum, PlywoodValue, Dataset, Set, SQLParse, TimeRange} from "plywood";
 import { getVariablesFlatDataset } from './variables';
 import { columnToMySQL, MySQLResult, dateToSQL, createMySQLGateway, fallbackMySQLFactory, MySQLParameters } from './mysql-gateway';
 import { executeSQLParse } from "./plyql-executor";
@@ -137,8 +137,8 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
               if (v && v.start) v = v.start;
 
               if (v && v.toISOString) {
-                v = Timezone.formatDateWithTimezone(v, timezone);
-              } else if (Set.isSet(v)) {
+                v = dateToSQL(v, timezone);
+              } else if (Set.isSet(v) || TimeRange.isTimeRange(v)) {
                 v = v.toString(timezone); // plyql does not yet support set times though
               } else if (typeof v === 'boolean') {
                 v = Number(v);

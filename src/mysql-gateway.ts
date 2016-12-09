@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import * as moment from 'moment-timezone';
+import { Timezone } from 'chronoshift';
 import { Dataset, PlyType } from "plywood";
 import * as mysql from 'vogievetsky-mysql2';
 const TYPES: Lookup<number> = require('vogievetsky-mysql2/lib/constants/types');
@@ -45,11 +47,8 @@ const capabilityFlags = 0
   //| CLIENT['REMEMBER_OPTIONS']
   ;
 
-export function dateToSQL(date: Date): string {
-  return date.toISOString()
-    .replace('T', ' ')
-    .replace('Z', '')
-    .replace('.000', '');
+export function dateToSQL(d: Date, timezone: Timezone): string {
+  return moment.tz(d, timezone.toString()).format('YYYY-MM-DD HH:mm:ss')
 }
 
 export function plywoodTypeToMySQL(type: PlyType) {
