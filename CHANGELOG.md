@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.9.10
+
+- `--timezone` option now affects the output timezone also
+- `realpath` -> `readlink -f` (I hate shell scripts)
+
 ## 0.9.9
 
 - Added missing realpath
