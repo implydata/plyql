@@ -79,6 +79,27 @@ describe('mysql-gateway-mysql-client', function() {
     });
   });
 
+  it('does a show character set query', (testComplete) => {
+    exec(`mysql ${CONN} -e 'SHOW CHARACTER SET LIKE "%utf%"'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.contain('utf8');
+      expect(stdout).to.contain('utf8mb4');
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
+  it('does a show collation query', (testComplete) => {
+    exec(`mysql ${CONN} -e 'SHOW COLLATIONS like "%latin%"'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.contain('latin1');
+      expect(stdout).to.contain('latin2');
+      expect(stdout).to.contain('latin5');
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
   it('does a SELECT query', (testComplete) => {
     exec(`mysql ${CONN} -e 'SELECT page, SUM(count) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
