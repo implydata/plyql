@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.9.14
+
+- Added support for `SHOW CHARACTER SET`
+- Added support for `SHOW COLLATION`
+
 ## 0.9.13
 
 - Support for encoding defined string literals (e.g. `N'lol'`, `_utf8'lol'`)
