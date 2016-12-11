@@ -19,7 +19,7 @@ import * as path from 'path';
 import * as hasOwnProp from 'has-own-prop';
 import * as Q from 'q';
 import * as nopt from 'nopt';
-import table, { getBorderCharacters } from 'table';
+import { table, getBorderCharacters } from 'table';
 
 import { Timezone, parseInterval, isDate } from 'chronoshift';
 

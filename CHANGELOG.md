@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.9.12
+
+- Support for encoding defined string literals (e.g. `N'lol'`, `_utf8'lol'`)
+
 ## 0.9.11
 
 - Fixed `realpath` / `readlink -f` for good (maybe) 

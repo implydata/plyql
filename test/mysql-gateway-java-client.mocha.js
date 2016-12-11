@@ -30,7 +30,7 @@ if (!jars.length) throw new Error("must have at least one jar in 'test/jdbc/jar'
 // jars = ['mysql-connector-java-5.1.39.jar'];
 
 describe('mysql-gateway-java-client', function() {
-  this.timeout(10000);
+  this.timeout(20000);
 
   before((done) => {
     exec('javac test/jdbc/DruidQuery.java', (error, stdout, stderr) => {

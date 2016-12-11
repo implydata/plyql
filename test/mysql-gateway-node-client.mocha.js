@@ -76,7 +76,7 @@ describe('mysql-gateway-node-client', () => {
   });
 
   it('works complex query', (testComplete) => {
-    connection.query(`SELECT page, SUM(count) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;`, (err, res) => {
+    connection.query(`SELECT page, SUM(count) AS 'Count' FROM wikipedia WHERE channel = N'en' GROUP BY page ORDER BY Count DESC LIMIT 3;`, (err, res) => {
       expect(err).to.equal(null);
       expect(res).to.deep.equal([
         {
