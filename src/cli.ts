@@ -32,6 +32,8 @@ import { executeSQLParse } from './plyql-executor';
 import { getVariablesDataset } from './variables';
 import { getStatusDataset } from './status';
 import { addExternal, getSchemataDataset, getTablesDataset, getColumnsDataset } from './schema';
+import { getCharacterSetsDataset } from "./character-sets";
+import { getCollationsDataset } from "./collations";
 
 function formatValue(v: any, tz: Timezone): any {
   if (v == null) return 'NULL';
@@ -392,6 +394,9 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
             let statusDataset = getStatusDataset();
             context['GLOBAL_STATUS'] = statusDataset;
             context['SESSION_STATUS'] = statusDataset;
+
+            context['CHARACTER_SETS'] = getCharacterSetsDataset();
+            context['COLLATIONS'] = getCollationsDataset();
           }
 
           return Q.all(sources.map(source => {
