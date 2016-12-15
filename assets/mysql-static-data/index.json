@@ -1,0 +1,57 @@
+{
+  "attributes": [
+    {
+      "name": "Table",
+      "type": "STRING"
+    },
+    {
+      "name": "Non_unique",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "Key_name",
+      "type": "STRING"
+    },
+    {
+      "name": "Seq_in_index",
+      "type": "STRING"
+    },
+    {
+      "name": "Column_name",
+      "type": "STRING"
+    },
+    {
+      "name": "Collation",
+      "type": "STRING"
+    },
+    {
+      "name": "Cardinality",
+      "type": "NUMBER"
+    },
+    {
+      "name": "Sub_part",
+      "type": "NUMBER"
+    },
+    {
+      "name": "Packed",
+      "type": "NUMBER"
+    },
+    {
+      "name": "Null",
+      "type": "STRING"
+    },
+    {
+      "name": "Index_type",
+      "type": "STRING"
+    },
+    {
+      "name": "Comment",
+      "type": "STRING"
+    },
+    {
+      "name": "Index_comment",
+      "type": "STRING"
+    }
+  ],
+  "data": []
+}

@@ -21,6 +21,8 @@ const spawnServer = require('node-spawn-server');
 
 const TEST_PORT = 13307;
 const CONN = `--host=127.0.0.1 --port=${TEST_PORT}`;
+const HOST = `192.168.99.100`;
+// const HOST = 'localhost';
 //CONN = `--host=192.168.99.100 -u root`; // Real datazoo MySQL
 
 let child;
@@ -36,7 +38,7 @@ const assert = (name, query, stdOutFn, complete) => {
 
 describe('mysql-gateway-mysql-client', function() {
   before((done) => {
-    child = spawnServer(`bin/plyql -h 192.168.99.100 --experimental-mysql-gateway ${TEST_PORT}`);
+    child = spawnServer(`bin/plyql -h ${HOST} --experimental-mysql-gateway ${TEST_PORT}`);
     child.onHook(`port: ${TEST_PORT}`, done);
   });
 
@@ -132,8 +134,17 @@ describe('mysql-gateway-mysql-client', function() {
     });
   });
 
-  it.skip('does a SHOW WARNINGS query', (testComplete) => {
+  it('does a SHOW WARNINGS query', (testComplete) => {
     exec(`mysql ${CONN} -t -e 'SHOW WARNINGS'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.equal('');
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
+  it('does a SHOW INDEX query', (testComplete) => {
+    exec(`mysql ${CONN} -t -e 'SHOW INDEX from wikipedia'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
       expect(stdout).to.equal('');
       expect(stderr).to.equal('');
