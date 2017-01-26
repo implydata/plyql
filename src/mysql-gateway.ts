@@ -104,6 +104,7 @@ export function createMySQLGateway(port: number, queryProcessor: MySQLQueryProce
   let server = mysql.createServer();
   server.listen(port);
   console.log(`MySQL Gateway listening on port: ${port}`);
+  console.log(`you can connect to it using \`mysql --host=127.0.0.1 --port=${port}\``);
 
   let connectionId = 0;
   server.on('connection', function(conn) {

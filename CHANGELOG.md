@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.9.15
+
+- Misc library updates
+
 ## 0.9.14
 
 - Added support for `SHOW CHARACTER SET`

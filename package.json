@@ -30,30 +30,30 @@
     "compile": "./compile-tsc"
   },
   "dependencies": {
-    "body-parser": "1.15.2",
+    "body-parser": "1.16.0",
     "chronoshift": "0.6.6",
     "compression": "1.6.2",
     "express": "4.14.0",
     "express-serve-static-core": "0.1.1",
     "has-own-prop": "1.0.0",
-    "moment-timezone": "0.5.10",
-    "nopt": "3.0.6",
-    "plywood": "0.15.8",
+    "moment-timezone": "0.5.11",
+    "nopt": "4.0.1",
+    "plywood": "0.15.10",
     "plywood-druid-requester": "1.5.9",
     "plywood-mysql-requester": "1.3.3",
     "q": "1.4.1",
     "table": "4.0.1",
-    "tslib": "1.2.0",
+    "tslib": "1.5.0",
     "vogievetsky-mysql2": "1.0.0-rc.1"
   },
   "devDependencies": {
-    "@types/node": "6.0.47",
+    "@types/node": "7.0.4",
     "chai": "3.5.0",
     "mocha": "3.2.0",
     "node-spawn-server": "1.0.1",
     "request": "2.79.0",
-    "tdi": "0.2.5",
-    "typescript": "2.1.4"
+    "tdi": "0.2.17",
+    "typescript": "2.1.5"
   },
   "bin": {
     "plyql": "bin/plyql"
