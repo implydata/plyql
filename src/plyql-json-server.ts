@@ -57,9 +57,15 @@ export function plyqlJSONServer(port: number, context: Datum, timezone: Timezone
     resultPromise
       .then((value: PlywoodValue) => {
         if (Dataset.isDataset(value)) {
-          res.json({
-            result: value.toJS()
-          });
+          if(parameters.isCsv) {
+            res.set('Content-Type', 'application/octet-stream');
+            res.attachment('plyql.csv');
+            res.status(200).send(value.toCSV({ finalLineBreak: 'include', timezone }));
+          } else {
+            res.json({
+              result: value.toJS()
+            });
+          }
         } else {
           res.json({
             result: value

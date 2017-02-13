@@ -23,6 +23,7 @@ import * as compress from 'compression';
 export interface JSONParameters {
   sql?: string;
   expression?: any;
+  isCsv?: boolean;
 }
 
 export interface JSONQueryProcessor {
@@ -52,6 +53,19 @@ export function createJSONServer(port: number, queryProcessor: JSONQueryProcesso
 
     console.log(`Got SQL: ${sql}`);
     queryProcessor({ sql }, res);
+  });
+
+  // Regular PlyQL route for CLI
+  app.post('/plyql/csv', (req: Request, res: Response) => {
+    let { sql } = req.body;
+
+    if (typeof sql !== "string") {
+      res.status(400).json({ error: "'sql' must be a string" });
+      return;
+    }
+
+    console.log(`Got SQL for CLI: ${sql}`);
+    queryProcessor({ sql, isCsv:true }, res);
   });
 
   // Extra Plywood route

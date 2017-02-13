@@ -27,7 +27,8 @@
   ],
   "scripts": {
     "prepublish": "node_modules/.bin/tdi",
-    "compile": "./compile-tsc"
+    "compile": "./compile-tsc",
+    "run": "bin/plyql"
   },
   "dependencies": {
     "body-parser": "1.16.0",
