@@ -107,6 +107,10 @@ Arguments:
           * segment-metadata-only     - only use the segmentMetadata query
           * datasource-get            - only use GET /druid/v2/datasources/DATASOURCE route
 
+      --socks-host       use this socks host to facilitate a Druid connection
+      --socks-username  the username for the socks proxy
+      --socks-password  the password for the socks proxy
+
       --force-time       force a column to be interpreted as a time column
       --force-boolean    force a column to be interpreted as a boolean
       --force-number     force a column to be interpreted as a number
@@ -160,6 +164,10 @@ export interface CommandLineArguments {
   "rollup"?: boolean;
   "skip-cache"?: boolean;
   "introspection-strategy"?: string;
+  "socks-host"?: string;
+  "socks-user"?: string;
+  "socks-username"?: string;
+  "socks-password"?: string;
 
   argv?: any;
 }
@@ -198,7 +206,11 @@ export function parseArguments(): CommandLineArguments {
       "druid-time-attribute": String,
       "rollup": Boolean,
       "skip-cache": Boolean,
-      "introspection-strategy": String
+      "introspection-strategy": String,
+      "socks-host": String,
+      "socks-user": String,
+      "socks-username": String,
+      "socks-password": String
     },
     {
       "v": ["--verbose"],
@@ -364,6 +376,14 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       throw new Error("must set one of --query (-q), --json-server, or --experimental-mysql-gateway");
     }
 
+    let socksHost = parsed['socks-host'];
+    let socksUsername: string;
+    let socksPassword: string;
+    if (socksHost) {
+      socksUsername = parsed['socks-username'] || parsed['socks-user'];
+      socksPassword = parsed['socks-password'];
+    }
+
     // ============== End parse ===============
 
     let requester = properDruidRequesterFactory({
@@ -371,7 +391,10 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       retry,
       timeout,
       verbose,
-      concurrentLimit: concurrent
+      concurrentLimit: concurrent,
+      socksHost,
+      socksUsername,
+      socksPassword
     });
 
     // ============== Do introspect ===============

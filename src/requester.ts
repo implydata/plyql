@@ -26,6 +26,9 @@ export interface ProperDruidRequesterOptions {
   verbose?: boolean;
   concurrentLimit?: number;
   requestDecorator?: DruidRequestDecorator;
+  socksHost?: string;
+  socksUsername?: string;
+  socksPassword?: string;
 }
 
 export function properDruidRequesterFactory(options: ProperDruidRequesterOptions): PlywoodRequester<any> {
@@ -35,13 +38,19 @@ export function properDruidRequesterFactory(options: ProperDruidRequesterOptions
     timeout,
     verbose,
     concurrentLimit,
-    requestDecorator
+    requestDecorator,
+    socksHost,
+    socksUsername,
+    socksPassword
   } = options;
 
   let druidRequester = druidRequesterFactory({
     host: druidHost,
     timeout: timeout || 30000,
-    requestDecorator
+    requestDecorator,
+    socksHost,
+    socksUsername,
+    socksPassword
   });
 
   if (retry) {

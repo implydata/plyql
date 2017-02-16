@@ -2,6 +2,12 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.0
+
+- Update to streaming Plywood
+- Added ability to use a socks proxy to connect to Druid via CLI arguments: `--socks-host`, `--socks-username`, `--socks-password`
+
+
 ## 0.9.16
 
 - Update Plywood to not bug out on Druid 0.10.x
