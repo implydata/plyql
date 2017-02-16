@@ -300,7 +300,7 @@ describe('query', function() {
   it('makes a describe existing table', () => {
     return Q.nfcall(exec, `bin/plyql -h ${druidHost} -q 'DESCRIBE wikipedia' -o JSON`)
       .then((res) => {
-        expect(JSON.parse(res[0])).to.deep.equal([
+        expect(parseLineJson(res[0])).to.deep.equal([
           {
             "Default": null,
             "Extra": "",
@@ -570,7 +570,7 @@ describe('query', function() {
   });
 
   it('makes a describe non-existing table', () => {
-    return Q.nfcall(exec, `bin/plyql -h ${druidHost} -q 'DESCRIBE wikiplebia' -o JSON`)
+    return Q.nfcall(exec, `bin/plyql -h ${druidHost} -q 'DESCRIBE wikiplebia' -o JSON `)
       .then(() => {
         throw new Error('DID_NOT_ERROR');
       })
