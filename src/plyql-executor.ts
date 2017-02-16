@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 
 import * as Promise from 'any-promise';
+import { ReadableStream } from 'readable-stream';
 import { Timezone } from "chronoshift";
 import { Expression, Datum, RefExpression, PlywoodValue, SQLParse } from "plywood";
 
@@ -36,6 +37,15 @@ export function executeSQLParse(sqlParse: SQLParse, context: Datum, timezone: Ti
   }
 
   return expression.compute(context, { timezone });
+}
+
+export function executeSQLParseStream(sqlParse: SQLParse, context: Datum, timezone: Timezone): ReadableStream {
+  let { expression, database } = sqlParse;
+  if (database && database.toLowerCase() === 'information_schema') {
+    expression = upperCaseRefs(expression); // the context variables are hardcoded from plyql so it makes sense to force upper here.
+  }
+
+  return expression.computeStream(context, { timezone });
 }
 
 export function executePlywood(expression: Expression, context: Datum, timezone: Timezone): Promise<PlywoodValue> {

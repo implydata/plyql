@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import * as path from 'path';
 import * as hasOwnProp from 'has-own-prop';
 import * as Q from 'q';
 import * as nopt from 'nopt';
-import { table, getBorderCharacters } from 'table';
+import { WritableStream } from 'readable-stream';
 
 import { Timezone, parseInterval, isDate } from 'chronoshift';
 
@@ -27,7 +27,8 @@ import { $, Expression, Datum, Dataset, PlywoodValue, TimeRange,
   External, DruidExternal, AttributeJSs, SQLParse, version, Set } from 'plywood';
 
 import { properDruidRequesterFactory } from './requester';
-import { executeSQLParse } from './plyql-executor';
+import { executeSQLParseStream } from './plyql-executor';
+import { getOutputTransform } from './outputTransform';
 
 import { getVariablesDataset } from './variables';
 import { getStatusDataset } from './status';
@@ -37,12 +38,6 @@ import {
   getWarningsDataset
 } from "./datasets";
 
-function formatValue(v: any, tz: Timezone): any {
-  if (v == null) return 'NULL';
-  if (isDate(v)) return Timezone.formatDateWithTimezone(v, tz);
-  if (Set.isSet(v) || TimeRange.isTimeRange(v)) return v.toString(tz);
-  return v;
-}
 
 function loadOrParseJSON(json: string): any {
   if (typeof json === 'undefined') return null;
@@ -467,66 +462,15 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
         });
       });
 
+
     return contextPromise.then((context) => {
       switch (mode) {
         case 'query':
-          return executeSQLParse(sqlParse, context, timezone)
-            .then((data: PlywoodValue) => {
-              let outputStr = '';
-              if (Dataset.isDataset(data)) {
-                let dataset = <Dataset>data;
-                switch (output) {
-                  case 'table':
-                    let flatDataset = dataset.flatten();
-                    let columnNames = flatDataset.attributes.map(c => c.name);
-
-                    if (columnNames.length) {
-                      let tableData = [columnNames].concat(flatDataset.data.map((flatDatum) => {
-                        return columnNames.map(cn => formatValue(flatDatum[cn], timezone))
-                      }));
-
-                      console.log(table(tableData, {
-                        border: getBorderCharacters('norc'),
-                        drawHorizontalLine: (index: number, size: number) => index <= 1 || index === size
-                      }));
-                    }
-                    break;
-
-                  case 'csv':
-                    console.log(dataset.toCSV({ finalLineBreak: 'include', timezone }));
-                    break;
-
-                  case 'tsv':
-                    console.log(dataset.toTSV({ finalLineBreak: 'include', timezone }));
-                    break;
-
-                  case 'json':
-                  case 'flat':
-                    dataset.flatten().data.forEach((d) => {
-                      console.log(JSON.stringify(d));
-                    });
-                    break;
-
-                  case 'plywood':
-                    console.log(JSON.stringify(dataset, null, 2));
-                    break;
-
-                  case 'plywood-stream':
-                    //outputStr = JSON.stringify(dataset, null, 2);
-                    //break;
-                    throw new Error('not yet!');
-
-                  default:
-                    console.log('Unknown output type'); // ToDo: make error!
-                    break;
-                }
-              } else {
-                console.log(String(data));
-              }
-            })
-            .catch((err: Error) => {
-              throw new Error(`There was an error getting the data: ${err.message}`);
-            });
+          let valueStream = executeSQLParseStream(sqlParse, context, timezone);
+          valueStream
+            .pipe(getOutputTransform(output, timezone))
+            .pipe(process.stdout);
+          return null;
 
         case 'gateway':
           require('./plyql-mysql-gateway').plyqlMySQLGateway(serverPort, context, timezone, null);
