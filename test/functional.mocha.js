@@ -302,4 +302,286 @@ describe('query', function() {
     }
   );
 
+  it('makes a describe existing table', () => {
+    return Q.nfcall(exec, `bin/plyql -h ${druidHost} -q 'DESCRIBE wikipedia' -o JSON`)
+      .then((res) => {
+        expect(JSON.parse(res[0])).to.deep.equal([
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "__time",
+            "Key": "",
+            "Null": "YES",
+            "Type": "TIME"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "added",
+            "Key": "",
+            "Null": "YES",
+            "Type": "NUMBER"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "channel",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "cityName",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "comment",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "commentLength",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "commentLengthStr",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "count",
+            "Key": "",
+            "Null": "YES",
+            "Type": "NUMBER"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "countryIsoCode",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "countryName",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "deleted",
+            "Key": "",
+            "Null": "YES",
+            "Type": "NUMBER"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "delta",
+            "Key": "",
+            "Null": "YES",
+            "Type": "NUMBER"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "deltaBucket100",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "deltaByTen",
+            "Key": "",
+            "Null": "YES",
+            "Type": "NUMBER"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "delta_hist",
+            "Key": "",
+            "Null": "YES",
+            "Type": "NUMBER"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "isAnonymous",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "isMinor",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "isNew",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "isRobot",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "isUnpatrolled",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "max_delta",
+            "Key": "",
+            "Null": "YES",
+            "Type": "NUMBER"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "metroCode",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "min_delta",
+            "Key": "",
+            "Null": "YES",
+            "Type": "NUMBER"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "namespace",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "page",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "page_unique",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "regionIsoCode",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "regionName",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "sometimeLater",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "user",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "userChars",
+            "Key": "",
+            "Null": "YES",
+            "Type": "SET/STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "user_theta",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "user_unique",
+            "Key": "",
+            "Null": "YES",
+            "Type": "STRING"
+          }
+        ]);
+      })
+  });
+
+  it('makes a describe non-existing table', () => {
+    return Q.nfcall(exec, `bin/plyql -h ${druidHost} -q 'DESCRIBE wikiplebia' -o JSON`)
+      .then(() => {
+        throw new Error('DID_NOT_ERROR');
+      })
+      .catch((e) => {
+        expect(e.message).to.contain('No such datasource');
+      })
+  });
+
 });
