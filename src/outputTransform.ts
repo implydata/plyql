@@ -16,7 +16,7 @@
 
 import { Transform } from 'readable-stream';
 import { Timezone, isDate } from 'chronoshift';
-import { PlywoodValueBuilder, TimeRange, Set, Dataset } from 'plywood';
+import { PlywoodValueBuilder, TimeRange, Set, Dataset, PlywoodValue } from 'plywood';
 import { table, getBorderCharacters } from 'table';
 
 function formatValue(v: any, tz: Timezone): any {
@@ -48,22 +48,36 @@ export function getOutputTransform(output: string, timezone: Timezone): Transfor
       });
 
     case 'csv':
-      return collectOutput((dataset: Dataset) => {
-        return dataset.toCSV({ finalLineBreak: 'include', timezone });
+      return collectOutput((v: PlywoodValue) => {
+        if (v instanceof Dataset) {
+          return v.toCSV({ finalLineBreak: 'include', timezone });
+        } else {
+          return String(v);
+        }
       });
 
     case 'tsv':
-      return collectOutput((dataset: Dataset) => {
-        return dataset.toTSV({ finalLineBreak: 'include', timezone });
+      return collectOutput((v: PlywoodValue) => {
+        if (v instanceof Dataset) {
+          return v.toTSV({ finalLineBreak: 'include', timezone });
+        } else {
+          return String(v);
+        }
       });
 
     case 'json':
     case 'flat':
-      return jsonOutput();
+      return collectOutput((v: PlywoodValue) => {
+        if (v instanceof Dataset) {
+          return v.flatten().data.map((d) => JSON.stringify(d)).join('\n') + '\n';
+        } else {
+          return String(v);
+        }
+      });
 
     case 'plywood':
-      return collectOutput((dataset: Dataset) => {
-        return JSON.stringify(dataset, null, 2);
+      return collectOutput((v: PlywoodValue) => {
+        return JSON.stringify(v, null, 2);
       });
 
     case 'plywood-stream':

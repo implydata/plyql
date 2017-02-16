@@ -273,8 +273,8 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
 
     // Get output
     let output: string = (parsed['output'] || 'table').toLowerCase();
-    if (output !== 'table' && output !== 'json' && output !== 'csv' && output !== 'tsv' && output !== 'flat') {
-      throw new Error(`output must be one of table, json, csv, tsv, or flat (is ${output})`);
+    if (output !== 'table' && output !== 'json' && output !== 'csv' && output !== 'tsv' && output !== 'flat' && output !== 'plywood-stream') {
+      throw new Error(`output must be one of table, json, csv, tsv, flat, plywood, or plywood-stream (is ${output})`);
     }
 
     // Get host
