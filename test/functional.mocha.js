@@ -15,7 +15,7 @@
  */
 
 const { expect } = require('chai');
-const { sane } = require('./utils/utils.js');
+const { sane, parseLineJson } = require('./utils/utils.js');
 const { exec } = require('child_process');
 const Q = require('q');
 
@@ -42,7 +42,7 @@ describe('query', function() {
   it('does basic query with json output', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -o json -q 'SELECT 1+1'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(JSON.parse(stdout)).to.deep.equal([
+      expect(parseLineJson(stdout)).to.deep.equal([
         {
           "1+1": 2
         }
@@ -102,7 +102,7 @@ describe('query', function() {
   it('does a SHOW TABLES query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -q 'SHOW TABLES' -o JSON`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(JSON.parse(stdout)).to.deep.equal([
+      expect(parseLineJson(stdout)).to.deep.equal([
         {
           "Tables_in_database": "COLUMNS"
         },
@@ -127,12 +127,9 @@ describe('query', function() {
   it('does timezone conversion query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -Z "America/Los_Angeles" -o json -q 'SELECT TIMESTAMP("2016-04-04T01:02:03") AS T'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(JSON.parse(stdout)).to.deep.equal([
+      expect(parseLineJson(stdout)).to.deep.equal([
         {
-          "T": {
-            "type": "TIME",
-            "value": "2016-04-04T08:02:03.000Z"
-          }
+          "T": "2016-04-04T08:02:03.000Z"
         }
       ]);
       expect(stderr).to.equal('');
@@ -217,7 +214,7 @@ describe('query', function() {
     `bin/plyql -h ${druidHost} -q 'SELECT pAgE as PAGE from wikipedia WHERE PAGE > "W" AND PAGE < "Y" limit 5' -o JSON`
     )
     .then((res) => {
-      expect(JSON.parse(res[0])).to.deep.equal([
+      expect(parseLineJson(res[0])).to.deep.equal([
         {
           "PAGE": "Wikipedia talk:WikiProject Arts"
         },
@@ -254,12 +251,13 @@ describe('query', function() {
     )
   );
 
-  it('respects bounds', () => Q.nfcall(exec,
-    `bin/plyql -h ${druidHost} -q 'SELECT count(*) FROM wikipedia WHERE __time BETWEEN "2015-09-12 00:46:00" AND "2015-09-12 00:48:00"'`
+  it('respects bounds', () => {
+    return Q.nfcall(exec,
+      `bin/plyql -h ${druidHost} -q 'SELECT count(*) FROM wikipedia WHERE __time BETWEEN "2015-09-12 00:46:00" AND "2015-09-12 00:48:00"'`
     ).then((res) => {
       expect(res[0]).to.contain('409')
-    })
-  );
+    });
+  });
 
   it('works with custom transforms from command line', () => {
     // Note: String.fromCharCode(46) === "." and String.fromCharCode() === ""
@@ -279,28 +277,25 @@ describe('query', function() {
       .then((res) => {
         expect(res[0]).to.contain(".T.h.e. .S.e.c.r.e.t. .L.i.f.e. .o.f.......");
       })
-    }
-  );
+  });
 
   it('works with custom transforms from file', () => {
-      return Q.nfcall(exec,
-        `bin/plyql -h ${druidHost} --custom-transforms @test/utils/custom/fancy-transforms.json -q 'SELECT CUSTOM_TRANSFORM(page, dotify) FROM wikipedia GROUP BY 1 LIMIT 5'`
-      )
-        .then((res) => {
-          expect(res[0]).to.contain(".T.h.e. .S.e.c.r.e.t. .L.i.f.e. .o.f.......");
-        })
-    }
-  );
+    return Q.nfcall(exec,
+      `bin/plyql -h ${druidHost} --custom-transforms @test/utils/custom/fancy-transforms.json -q 'SELECT CUSTOM_TRANSFORM(page, dotify) FROM wikipedia GROUP BY 1 LIMIT 5'`
+    )
+      .then((res) => {
+        expect(res[0]).to.contain(".T.h.e. .S.e.c.r.e.t. .L.i.f.e. .o.f.......");
+      })
+  });
 
   it('works with custom aggregations from file', () => {
-      return Q.nfcall(exec,
-        `bin/plyql -h ${druidHost} --custom-aggregations @test/utils/custom/fancy-aggregations.json -q 'SELECT channel, CUSTOM_AGGREGATE("addedMod1337") FROM wikipedia GROUP BY 1 LIMIT 5'`
-      )
-        .then((res) => {
-          expect(res[0]).to.contain("1097");
-        })
-    }
-  );
+    return Q.nfcall(exec,
+      `bin/plyql -h ${druidHost} --custom-aggregations @test/utils/custom/fancy-aggregations.json -q 'SELECT channel, CUSTOM_AGGREGATE("addedMod1337") FROM wikipedia GROUP BY 1 LIMIT 5'`
+    )
+      .then((res) => {
+        expect(res[0]).to.contain("1097");
+      })
+  });
 
   it('makes a describe existing table', () => {
     return Q.nfcall(exec, `bin/plyql -h ${druidHost} -q 'DESCRIBE wikipedia' -o JSON`)

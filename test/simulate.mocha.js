@@ -20,7 +20,7 @@ const Q = require('q');
 
 const mockDruid = require('./utils/mock-druid');
 const queryResult = require('./utils/test-data/wiki-query-responses').result;
-const { sane } = require('./utils/utils.js');
+const { sane, parseLineJson } = require('./utils/utils.js');
 
 const druidHost = 'localhost';
 const TEST_PORT = 28082;
@@ -66,7 +66,7 @@ describe('simulate', () => {
   it('does basic query with json output', (testComplete) => {
     exec(`bin/plyql -h ${druidHost}:${TEST_PORT} -o json -q 'SELECT 1+1'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(JSON.parse(stdout)).to.deep.equal([
+      expect(parseLineJson(stdout)).to.deep.equal([
         {
           "1+1": 2
         }
@@ -94,7 +94,7 @@ describe('simulate', () => {
   it('does a SHOW TABLES query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost}:${TEST_PORT} -q 'SHOW TABLES' -o JSON`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(JSON.parse(stdout)).to.deep.equal([
+      expect(parseLineJson(stdout)).to.deep.equal([
         {
           "Tables_in_database": "COLUMNS"
         },
@@ -119,12 +119,9 @@ describe('simulate', () => {
   it('does timezone conversion query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost}:${TEST_PORT} -Z "America/Los_Angeles" -o json -q 'SELECT TIMESTAMP("2016-04-04T01:02:03") AS T'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(JSON.parse(stdout)).to.deep.equal([
+      expect(parseLineJson(stdout)).to.deep.equal([
         {
-          "T": {
-            "type": "TIME",
-            "value": "2016-04-04T08:02:03.000Z"
-          }
+          "T": "2016-04-04T08:02:03.000Z"
         }
       ]);
       expect(stderr).to.equal('');

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
 import { Timezone } from "chronoshift";
 import { Expression, Datum, RefExpression, PlywoodValue, SQLParse } from "plywood";
 
@@ -29,7 +29,7 @@ function upperCaseRefs(expression: Expression): Expression {
   })
 }
 
-export function executeSQLParse(sqlParse: SQLParse, context: Datum, timezone: Timezone): Q.Promise<PlywoodValue> {
+export function executeSQLParse(sqlParse: SQLParse, context: Datum, timezone: Timezone): Promise<PlywoodValue> {
   let { expression, database } = sqlParse;
   if (database && database.toLowerCase() === 'information_schema') {
     expression = upperCaseRefs(expression); // the context variables are hardcoded from plyql so it makes sense to force upper here.
@@ -38,6 +38,6 @@ export function executeSQLParse(sqlParse: SQLParse, context: Datum, timezone: Ti
   return expression.compute(context, { timezone });
 }
 
-export function executePlywood(expression: Expression, context: Datum, timezone: Timezone): Q.Promise<PlywoodValue> {
+export function executePlywood(expression: Expression, context: Datum, timezone: Timezone): Promise<PlywoodValue> {
   return expression.compute(context, { timezone });
 }

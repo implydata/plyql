@@ -86,7 +86,7 @@ Arguments:
   -s, --source       use this source for the query (supersedes FROM clause)
   -i, --interval     add (AND) a __time filter between NOW-INTERVAL and NOW
   -Z, --timezone     the default timezone
-  -o, --output       the output format. Possible values: table (default), json, csv, tsv, flat
+  -o, --output       the output format. Possible values: table (default), json, csv, tsv, flat, plywood, plywood-stream
   -t, --timeout      the time before a query is timed out in ms (default: 180000)
   -r, --retry        the number of tries a query should be attempted on error, 0 = unlimited, (default: 2)
   -c, --concurrent   the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
@@ -454,44 +454,52 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
                 let dataset = <Dataset>data;
                 switch (output) {
                   case 'table':
-                    let columns = dataset.getColumns();
-                    let flatData = dataset.flatten();
-                    let columnNames = columns.map(c => c.name);
+                    let flatDataset = dataset.flatten();
+                    let columnNames = flatDataset.attributes.map(c => c.name);
 
                     if (columnNames.length) {
-                      let tableData = [columnNames].concat(flatData.map(flatDatum => columnNames.map(cn => formatValue(flatDatum[cn], timezone))));
+                      let tableData = [columnNames].concat(flatDataset.data.map((flatDatum) => {
+                        return columnNames.map(cn => formatValue(flatDatum[cn], timezone))
+                      }));
 
-                      outputStr = table(tableData, {
+                      console.log(table(tableData, {
                         border: getBorderCharacters('norc'),
                         drawHorizontalLine: (index: number, size: number) => index <= 1 || index === size
-                      });
+                      }));
                     }
                     break;
 
-                  case 'json':
-                    outputStr = JSON.stringify(dataset, null, 2);
-                    break;
-
                   case 'csv':
-                    outputStr = dataset.toCSV({ finalLineBreak: 'include', timezone });
+                    console.log(dataset.toCSV({ finalLineBreak: 'include', timezone }));
                     break;
 
                   case 'tsv':
-                    outputStr = dataset.toTSV({ finalLineBreak: 'include', timezone });
+                    console.log(dataset.toTSV({ finalLineBreak: 'include', timezone }));
                     break;
 
+                  case 'json':
                   case 'flat':
-                    outputStr = JSON.stringify(dataset.flatten(), null, 2);
+                    dataset.flatten().data.forEach((d) => {
+                      console.log(JSON.stringify(d));
+                    });
                     break;
+
+                  case 'plywood':
+                    console.log(JSON.stringify(dataset, null, 2));
+                    break;
+
+                  case 'plywood-stream':
+                    //outputStr = JSON.stringify(dataset, null, 2);
+                    //break;
+                    throw new Error('not yet!');
 
                   default:
-                    outputStr = 'Unknown output type';
+                    console.log('Unknown output type'); // ToDo: make error!
                     break;
                 }
               } else {
-                outputStr = String(data);
+                console.log(String(data));
               }
-              console.log(outputStr);
             })
             .catch((err: Error) => {
               throw new Error(`There was an error getting the data: ${err.message}`);

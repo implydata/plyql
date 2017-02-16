@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
 import { Timezone } from "chronoshift";
 import { Expression, Datum, PlywoodValue, Dataset, SQLParse } from "plywood";
 import { createJSONServer, JSONParameters } from './json-server';
@@ -25,7 +25,7 @@ export function plyqlJSONServer(port: number, context: Datum, timezone: Timezone
   createJSONServer(port, (parameters: JSONParameters, res: any) => {
     let { sql, expression } = parameters;
 
-    let resultPromise: Q.Promise<PlywoodValue>;
+    let resultPromise: Promise<PlywoodValue>;
 
     if (expression) {
       let ex: Expression;
@@ -66,10 +66,9 @@ export function plyqlJSONServer(port: number, context: Datum, timezone: Timezone
           });
         }
       })
-      .fail((e) => {
+      .catch((e) => {
         res.status(500).send({ error: e.message });
-      })
-      .done();
+      });
   });
 
 }

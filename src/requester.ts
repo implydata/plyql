@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { PlywoodRequester } from 'plywood-base-api';
 import { $, retryRequesterFactory, verboseRequesterFactory, concurrentLimitRequesterFactory } from 'plywood';
 import { druidRequesterFactory, DruidRequestDecorator } from 'plywood-druid-requester';
 //import { mySqlRequesterFactory } from 'plywood-mysql-requester';
@@ -27,7 +28,7 @@ export interface ProperDruidRequesterOptions {
   requestDecorator?: DruidRequestDecorator;
 }
 
-export function properDruidRequesterFactory(options: ProperDruidRequesterOptions): Requester.PlywoodRequester<any> {
+export function properDruidRequesterFactory(options: ProperDruidRequesterOptions): PlywoodRequester<any> {
   let {
     druidHost,
     retry,

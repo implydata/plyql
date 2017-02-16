@@ -127,17 +127,18 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
 
         case 'dataset':
           let dataset = result.dataset;
-          let plyColumns = dataset.getColumns().map(c => columnToMySQL(c, result.table));
-          let plyRows = dataset.flatten().map(row => {
+          let flatDataset = dataset.flatten();
+          let plyColumns = flatDataset.attributes.map(c => columnToMySQL(c, result.table));
+          let plyRows = flatDataset.data.map(row => {
             let newRow: any = {};
             for (let k in row) {
               let v = row[k];
 
               // Kill ranges
-              if (v && v.start) v = v.start;
+              if (v && (v as any).start) v = (v as any).start;
 
-              if (v && v.toISOString) {
-                v = dateToSQL(v, timezone);
+              if (v && (v as any).toISOString) {
+                v = dateToSQL(v as Date, timezone);
               } else if (Set.isSet(v) || TimeRange.isTimeRange(v)) {
                 v = v.toString(timezone); // plyql does not yet support set times though
               } else if (typeof v === 'boolean') {
