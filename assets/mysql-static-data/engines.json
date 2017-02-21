@@ -1,0 +1,74 @@
+[
+  {
+    "Engine" : "InnoDB",
+    "Support" : "DEFAULT",
+    "Comment" : "Supports transactions, row-level locking, and foreign keys",
+    "Transactions" : "YES",
+    "XA" : "YES",
+    "Savepoints" : "YES"
+  },
+  {
+    "Engine" : "MRG_MYISAM",
+    "Support" : "YES",
+    "Comment" : "Collection of identical MyISAM tables",
+    "Transactions" : "NO",
+    "XA" : "NO",
+    "Savepoints" : "NO"
+  },
+  {
+    "Engine" : "MEMORY",
+    "Support" : "YES",
+    "Comment" : "Hash based, stored in memory, useful for temporary tables",
+    "Transactions" : "NO",
+    "XA" : "NO",
+    "Savepoints" : "NO"
+  },
+  {
+    "Engine" : "BLACKHOLE",
+    "Support" : "YES",
+    "Comment" : "/dev/null storage engine (anything you write to it disappears)",
+    "Transactions" : "NO",
+    "XA" : "NO",
+    "Savepoints" : "NO"
+  },
+  {
+    "Engine" : "MyISAM",
+    "Support" : "YES",
+    "Comment" : "MyISAM storage engine",
+    "Transactions" : "NO",
+    "XA" : "NO",
+    "Savepoints" : "NO"
+  },
+  {
+    "Engine" : "CSV",
+    "Support" : "YES",
+    "Comment" : "CSV storage engine",
+    "Transactions" : "NO",
+    "XA" : "NO",
+    "Savepoints" : "NO"
+  },
+  {
+    "Engine" : "ARCHIVE",
+    "Support" : "YES",
+    "Comment" : "Archive storage engine",
+    "Transactions" : "NO",
+    "XA" : "NO",
+    "Savepoints" : "NO"
+  },
+  {
+    "Engine" : "PERFORMANCE_SCHEMA",
+    "Support" : "YES",
+    "Comment" : "Performance Schema",
+    "Transactions" : "NO",
+    "XA" : "NO",
+    "Savepoints" : "NO"
+  },
+  {
+    "Engine" : "FEDERATED",
+    "Support" : "NO",
+    "Comment" : "Federated MySQL storage engine",
+    "Transactions" : "null",
+    "XA" : "null",
+    "Savepoints" : "null"
+  }
+]

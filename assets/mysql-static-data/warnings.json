@@ -1,0 +1,17 @@
+{
+  "attributes": [
+    {
+      "name": "Level",
+      "type": "STRING"
+    },
+    {
+      "name": "Code",
+      "type": "NUMBER"
+    },
+    {
+      "name": "Message",
+      "type": "STRING"
+    }
+  ],
+  "data": []
+}

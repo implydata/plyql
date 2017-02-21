@@ -21,6 +21,9 @@ const spawnServer = require('node-spawn-server');
 
 const TEST_PORT = 13307;
 const CONN = `--host=127.0.0.1 --port=${TEST_PORT}`;
+let HOST = `192.168.99.100`;
+
+//HOST = 'localhost';
 //CONN = `--host=192.168.99.100 -u root`; // Real datazoo MySQL
 
 let child;
@@ -36,7 +39,7 @@ const assert = (name, query, stdOutFn, complete) => {
 
 describe('mysql-gateway-mysql-client', function() {
   before((done) => {
-    child = spawnServer(`bin/plyql -h 192.168.99.100 --experimental-mysql-gateway ${TEST_PORT}`);
+    child = spawnServer(`bin/plyql -h ${HOST} --experimental-mysql-gateway ${TEST_PORT}`);
     child.onHook(`port: ${TEST_PORT}`, done);
   });
 
@@ -132,8 +135,17 @@ describe('mysql-gateway-mysql-client', function() {
     });
   });
 
-  it.skip('does a SHOW WARNINGS query', (testComplete) => {
+  it('does a SHOW WARNINGS query', (testComplete) => {
     exec(`mysql ${CONN} -t -e 'SHOW WARNINGS'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.equal('');
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
+  it('does a SHOW INDEX query', (testComplete) => {
+    exec(`mysql ${CONN} -t -e 'SHOW INDEX from wikipedia'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
       expect(stdout).to.equal('');
       expect(stderr).to.equal('');
@@ -171,6 +183,23 @@ describe('mysql-gateway-mysql-client', function() {
       DESCRIBE wikipedia
     `;
 
+    let query5 = sane`
+      SELECT COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME,
+       ORDINAL_POSITION,
+       CONSTRAINT_NAME
+      FROM information_schema.KEY_COLUMN_USAGE
+      WHERE REFERENCED_TABLE_NAME IS NOT NULL
+       AND TABLE_NAME = 'client_logs'
+       AND TABLE_SCHEMA = 'plyql1'
+    `;
+
+    let query6 = sane`
+      SELECT COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME,
+       ORDINAL_POSITION,
+       CONSTRAINT_NAME
+      FROM information_schema.KEY_COLUMN_USAGE
+    `;
+
     assert('information schema.columns 1', query1, (stdOut) => stdOut === '');
     assert('information schema.columns 2', query2, (stdOut) => stdOut === '');
     assert('information schema.columns 2 lower', query2Lower, (stdOut) => stdOut === '');
@@ -181,7 +210,15 @@ describe('mysql-gateway-mysql-client', function() {
     assert('describe', query4, (stdOut) => {
       return stdOut.indexOf('Field	Type	Null	Key	Default	Extra') !== -1 &&
         stdOut.indexOf('isAnonymous	varchar(255)	YES		NULL') !== -1;
-    }, testComplete)
+    });
+
+    assert('information schema.key_column_usage filter', query5, (stdOut) => stdOut === '');
+    assert('information schema.key_column_usage no filter', query6, (stdOut) => {
+      return stdOut.indexOf('COLUMN_NAME	REFERENCED_TABLE_NAME	REFERENCED_COLUMN_NAME	ORDINAL_POSITION	CONSTRAINT_NAME') !== -1 &&
+          stdOut.indexOf('Column_name	NULL	NULL	5	PRIMARY') !== -1;
+    }, testComplete);
+
+
   });
 
   it('quarters basic', (testComplete) => {
@@ -248,7 +285,7 @@ describe('mysql-gateway-mysql-client', function() {
 describe('timezones', function() {
   this.timeout(50000);
   before((done) => {
-    child = spawnServer(`bin/plyql -h 192.168.99.100 -Z Asia/Kathmandu --experimental-mysql-gateway ${TEST_PORT}`);
+    child = spawnServer(`bin/plyql -h ${HOST} -Z Asia/Kathmandu --experimental-mysql-gateway ${TEST_PORT}`);
     child.onHook(`port: ${TEST_PORT}`, done);
  });
 
