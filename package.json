@@ -27,7 +27,8 @@
   ],
   "scripts": {
     "prepare": "tdi -q",
-    "compile": "./compile-tsc",
+    "compile": "tsc",
+    "watch": "tsc --watch",
     "test": "mocha"
   },
   "dependencies": {
@@ -40,8 +41,8 @@
     "has-own-prop": "1.0.0",
     "moment-timezone": "0.5.11",
     "nopt": "4.0.1",
-    "plywood": "0.16.1-4",
-    "plywood-base-api": "0.2.2",
+    "plywood": "0.16.1-9",
+    "plywood-base-api": "0.2.5",
     "plywood-druid-requester": "2.0.6",
     "plywood-mysql-requester": "2.0.1",
     "q": "1.4.1",

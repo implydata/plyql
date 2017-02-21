@@ -12,7 +12,7 @@ then
   exit 1
 fi
 
-./compile-tsc
+npm run compile
 mocha
 
 echo "Trying to publish..."

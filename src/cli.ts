@@ -28,7 +28,7 @@ import { $, Expression, Datum, Dataset, PlywoodValue, TimeRange,
 
 import { properDruidRequesterFactory } from './requester';
 import { executeSQLParseStream } from './plyql-executor';
-import { getOutputTransform } from './outputTransform';
+import { getOutputTransform } from './output-transform';
 
 import { getVariablesDataset } from './variables';
 import { getStatusDataset } from './status';
@@ -467,9 +467,15 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       switch (mode) {
         case 'query':
           let valueStream = executeSQLParseStream(sqlParse, context, timezone);
+
+          valueStream.on('error', (e: Error) => {
+            console.error(`Could not compute query due to error: ${e.message}`);
+          });
+
           valueStream
             .pipe(getOutputTransform(output, timezone))
             .pipe(process.stdout);
+
           return null;
 
         case 'gateway':

@@ -210,46 +210,45 @@ describe('query', function() {
     });
   });
 
-  it('makes a case insensitive query', () => Q.nfcall(exec,
-    `bin/plyql -h ${druidHost} -q 'SELECT pAgE as PAGE from wikipedia WHERE PAGE > "W" AND PAGE < "Y" limit 5' -o JSON`
-    )
-    .then((res) => {
-      expect(parseLineJson(res[0])).to.deep.equal([
-        {
-          "PAGE": "Wikipedia talk:WikiProject Arts"
-        },
-        {
-          "PAGE": "Winthrop, Maine"
-        },
-        {
-          "PAGE": "Wikipedia:Articles for deletion/Log/2015 September 12"
-        },
-        {
-          "PAGE": "Wikipedia:Articles for deletion/Log/2015 September 4"
-        },
-        {
-          "PAGE": "Wikipedia:Articles for deletion/Dmitry Geller"
-        }
-      ]);
-    })
-  );
+  it('makes a case insensitive query', () => {
+    return Q.nfcall(exec, `bin/plyql -h ${druidHost} -q 'SELECT pAgE as PAGE from wikipedia WHERE PAGE > "W" AND PAGE < "Y" limit 5' -o JSON`)
+      .then((res) => {
+        expect(parseLineJson(res[0])).to.deep.equal([
+          {
+            "PAGE": "Wikipedia talk:WikiProject Arts"
+          },
+          {
+            "PAGE": "Winthrop, Maine"
+          },
+          {
+            "PAGE": "Wikipedia:Articles for deletion/Log/2015 September 12"
+          },
+          {
+            "PAGE": "Wikipedia:Articles for deletion/Log/2015 September 4"
+          },
+          {
+            "PAGE": "Wikipedia:Articles for deletion/Dmitry Geller"
+          }
+        ]);
+      });
+  });
 
-  it('does a group by query and respects order', () => Q.nfcall(exec,
-    `bin/plyql -h ${druidHost} -q 'SELECT sum(added), page from wikipedia group by 2 limit 5'`
-    ).then((res) => {
-      expect(res[0]).to.contain(sane`
-        ┌────────────┬─────────────────────────────────┐
-        │ sum(added) │ page                            │
-        ├────────────┼─────────────────────────────────┤
-        │ 1940       │ !T.O.O.H.!                      │
-        │ 68         │ "The Secret Life of..."         │
-        │ 4717       │ '''Kertomus Venetsiasta''' 1977 │
-        │ 1612       │ 'Ajde Jano                      │
-        │ 30         │ 'Alî Sharî'atî                  │
-        └────────────┴─────────────────────────────────┘
-      `)}
-    )
-  );
+  it('does a group by query and respects order', () => {
+    return Q.nfcall(exec, `bin/plyql -h ${druidHost} -q 'SELECT sum(added), page from wikipedia group by 2 limit 5'`)
+      .then((res) => {
+        expect(res[0]).to.contain(sane`
+          ┌────────────┬─────────────────────────────────┐
+          │ sum(added) │ page                            │
+          ├────────────┼─────────────────────────────────┤
+          │ 1940       │ !T.O.O.H.!                      │
+          │ 68         │ "The Secret Life of..."         │
+          │ 4717       │ '''Kertomus Venetsiasta''' 1977 │
+          │ 1612       │ 'Ajde Jano                      │
+          │ 30         │ 'Alî Sharî'atî                  │
+          └────────────┴─────────────────────────────────┘
+        `)
+      });
+  });
 
   it('respects bounds', () => {
     return Q.nfcall(exec,

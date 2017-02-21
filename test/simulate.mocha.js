@@ -49,18 +49,18 @@ describe('simulate', () => {
     })
   });
 
-  it('does a basic query', () => Q.nfcall(exec,
-    `bin/plyql -h ${druidHost}:${TEST_PORT} -q 'SELECT 1+1'`
-  ).then((res) => {
-      expect(res[0]).to.contain(sane`
-        ┌─────┐
-        │ 1+1 │
-        ├─────┤
-        │ 2   │
-        └─────┘
-      `)}
-      )
-  );
+  it('does a basic query', () => {
+    return Q.nfcall(exec, `bin/plyql -h ${druidHost}:${TEST_PORT} -q 'SELECT 1+1'`)
+      .then((res) => {
+        expect(res[0]).to.contain(sane`
+          ┌─────┐
+          │ 1+1 │
+          ├─────┤
+          │ 2   │
+          └─────┘
+        `)
+      });
+  });
 
 
   it('does basic query with json output', (testComplete) => {
@@ -76,20 +76,20 @@ describe('simulate', () => {
     });
   });
 
-  it('does a topN query (group by with limit)', () => Q.nfcall(exec,
-    `bin/plyql -h ${druidHost}:${TEST_PORT} -q 'select channel from wikipedia group by channel limit 3;'`
-    ).then((res) => {
-      expect(res[0]).to.contain(sane`
-        ┌─────────┐
-        │ channel │
-        ├─────────┤
-        │ ar      │
-        │ be      │
-        │ bg      │
-        └─────────┘
-      `)}
-    )
-  );
+  it('does a topN query (group by with limit)', () => {
+    return Q.nfcall(exec, `bin/plyql -h ${druidHost}:${TEST_PORT} -q 'select channel from wikipedia group by channel limit 3;'`)
+      .then((res) => {
+        expect(res[0]).to.contain(sane`
+          ┌─────────┐
+          │ channel │
+          ├─────────┤
+          │ ar      │
+          │ be      │
+          │ bg      │
+          └─────────┘
+        `);
+      });
+  });
 
   it('does a SHOW TABLES query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost}:${TEST_PORT} -q 'SHOW TABLES' -o JSON`, (error, stdout, stderr) => {

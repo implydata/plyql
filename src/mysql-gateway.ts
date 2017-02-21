@@ -82,15 +82,6 @@ export function columnToMySQL(column: any, table: string) {
   }
 }
 
-export interface MySQLResult {
-  type: 'ok' | 'error' | 'dataset' | 'connectionId'
-  dataset?: Dataset;
-  table?: string;
-  name?: string;
-  code?: number;
-  message?: string;
-}
-
 export interface MySQLParameters {
   sql: string;
   connectionId: number;

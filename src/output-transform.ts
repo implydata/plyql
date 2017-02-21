@@ -30,7 +30,7 @@ export function getOutputTransform(output: string, timezone: Timezone): Transfor
   switch (output) {
     case 'table':
       return collectOutput((dataset: Dataset) => {
-        let flatDataset = dataset.flatten();
+        let flatDataset = dataset.flatten({ order: 'preorder' });
         let columnNames = flatDataset.attributes.map(c => c.name);
 
         if (columnNames.length) {
