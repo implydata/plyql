@@ -15,9 +15,7 @@
  */
 
 import { Dataset, PlyType, External } from "plywood";
-import * as fs from 'fs';
-import * as path from 'path';
-import {getData} from "./datasets";
+import { getData } from "./datasets";
 
 const DB_NAME = 'plyql1';
 
