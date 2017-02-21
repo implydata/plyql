@@ -96,6 +96,7 @@ Arguments:
       --custom-transforms        A JSON string defining custom transforms
       --druid-context            A JSON string representing the Druid context to use
       --skip-cache               disable Druid caching
+      --group-by-v2              Set groupByStrategy to 'v2' in the context to ensure use of the V2 GroupBy engine
       --introspection-strategy   Druid introspection strategy
           Possible values:
           * segment-metadata-fallback - (default) use the segmentMetadata and fallback to GET route
@@ -158,6 +159,7 @@ export interface CommandLineArguments {
   "druid-time-attribute"?: string;
   "rollup"?: boolean;
   "skip-cache"?: boolean;
+  "group-by-v2"?: boolean;
   "introspection-strategy"?: string;
   "socks-host"?: string;
   "socks-user"?: string;
@@ -201,6 +203,7 @@ export function parseArguments(): CommandLineArguments {
       "druid-time-attribute": String,
       "rollup": Boolean,
       "skip-cache": Boolean,
+      "group-by-v2": Boolean,
       "introspection-strategy": String,
       "socks-host": String,
       "socks-user": String,
@@ -306,6 +309,10 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
     if (parsed['skip-cache']) {
       druidContext.useCache = false;
       druidContext.populateCache = false;
+    }
+
+    if (parsed['group-by-v2']) {
+      druidContext['groupByStrategy'] = 'v2';
     }
 
     let timeAttribute = parsed['druid-time-attribute'] || '__time';
