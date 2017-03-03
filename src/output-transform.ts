@@ -17,7 +17,11 @@
 import { Transform } from 'readable-stream';
 import { Timezone, isDate } from 'chronoshift';
 import { PlywoodValueBuilder, TimeRange, Set, Dataset, PlywoodValue } from 'plywood';
-import { table, getBorderCharacters } from 'table';
+import { table, getBorderCharacters, createStream } from 'table';
+
+function streamFlatten(v: any): any {
+  return v;
+}
 
 function formatValue(v: any, tz: Timezone): any {
   if (v == null) return 'NULL';
@@ -96,6 +100,24 @@ function jsonOutput(): Transform {
     }
   });
 }
+
+// function tableOutput(): Transform {
+//   let table: any;
+//   return new Transform({
+//     objectMode: true,
+//     transform: function(chunk, encoding, callback) {
+//       if (chunk.type === 'init' && !table) {
+//         table = createStream({
+//           columnDefault: {
+//             width: 50
+//           },
+//           columnCount: chunk.attributes.length
+//         });
+//       }
+//       callback(null, JSON.stringify(chunk) + '\n');
+//     }
+//   });
+// }
 
 function collectOutput(onDone: (value: any) => string): Transform {
   let pvb = new PlywoodValueBuilder();
