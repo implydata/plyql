@@ -2,11 +2,16 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
-## 0.10.0
+## 0.10.2
+
+- Included assets file
+
+## 0.10.1
 
 - Update to streaming Plywood
 - Added ability to use a socks proxy to connect to Druid via CLI arguments: `--socks-host`, `--socks-username`, `--socks-password`
 - Added `--group-by-v2` CLI flag which sets groupByStrategy to 'v2' in the context to ensure use of the V2 GroupBy engine  
+
 
 ## 0.9.16
 

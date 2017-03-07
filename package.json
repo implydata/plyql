@@ -22,6 +22,7 @@
   },
   "main": "build/cli.js",
   "files": [
+    "assets/",
     "bin/",
     "build/"
   ],
