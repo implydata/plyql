@@ -261,17 +261,17 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
 
     let forceUnique: string[] = parsed['force-unique'] || [];
     for (let attributeName of forceUnique) {
-      attributeOverrides.push({ name: attributeName, special: 'unique' });
+      attributeOverrides.push({ name: attributeName, nativeType: 'hyperUnique' });
     }
 
     let forceTheta: string[] = parsed['force-theta'] || [];
     for (let attributeName of forceTheta) {
-      attributeOverrides.push({ name: attributeName, special: 'theta' });
+      attributeOverrides.push({ name: attributeName, nativeType: 'thetaSketch' });
     }
 
     let forceHistogram: string[] = parsed['force-histogram'] || [];
     for (let attributeName of forceHistogram) {
-      attributeOverrides.push({ name: attributeName, special: 'histogram' });
+      attributeOverrides.push({ name: attributeName, nativeType: 'approximateHistogram' });
     }
 
     // Get output

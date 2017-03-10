@@ -4,6 +4,10 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.10.2
 
+- Added new plywood, including support for `CASE`, `IF`
+
+## 0.10.2
+
 - Included assets file
 
 ## 0.10.1

@@ -238,7 +238,7 @@ function addExternalToColumns(source: string, external: External, mysqlTypes: bo
       "COLUMN_KEY": '',
       "EXTRA": '',
       "PRIVILEGES": "select",
-      "COLUMN_COMMENT": attribute.special || '',
+      "COLUMN_COMMENT": attribute.nativeType || '',
       "GENERATION_EXPRESSION": ''
     });
   }

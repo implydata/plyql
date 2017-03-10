@@ -52,7 +52,7 @@ describe('query', function() {
     });
   });
 
-  it('does a SELECT query', (testComplete) => {
+  it('does a SELECT query GROUP BY', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -q 'SELECT page, SUM(count) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
       expect(stdout).to.contain(sane`
@@ -63,6 +63,22 @@ describe('query', function() {
         │ Jeremy Corbyn                                            │ 241   │
         │ Wikipedia:Administrators' noticeboard/Incidents          │ 228   │
         └──────────────────────────────────────────────────────────┴───────┘
+      `);
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
+  it('does a SELECT query GROUP BY with CASE', (testComplete) => {
+    exec(`bin/plyql -h ${druidHost} -q 'SELECT CASE page WHEN "Jeremy Corbyn" THEN "Labor" ELSE "Other" END AS casePage, SUM(count) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY 1 ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.contain(sane`
+        ┌──────────┬────────┐
+        │ casePage │ Count  │
+        ├──────────┼────────┤
+        │ Other    │ 114470 │
+        │ Labor    │ 241    │
+        └──────────┴────────┘
       `);
       expect(stderr).to.equal('');
       testComplete();
@@ -418,7 +434,7 @@ describe('query', function() {
             "Field": "delta_hist",
             "Key": "",
             "Null": "YES",
-            "Type": "NUMBER"
+            "Type": "NULL"
           },
           {
             "Default": null,
@@ -506,7 +522,7 @@ describe('query', function() {
             "Field": "page_unique",
             "Key": "",
             "Null": "YES",
-            "Type": "STRING"
+            "Type": "NULL"
           },
           {
             "Default": null,
@@ -554,7 +570,7 @@ describe('query', function() {
             "Field": "user_theta",
             "Key": "",
             "Null": "YES",
-            "Type": "STRING"
+            "Type": "NULL"
           },
           {
             "Default": null,
@@ -562,7 +578,7 @@ describe('query', function() {
             "Field": "user_unique",
             "Key": "",
             "Null": "YES",
-            "Type": "STRING"
+            "Type": "NULL"
           }
         ]);
       })
