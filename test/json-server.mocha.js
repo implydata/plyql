@@ -63,8 +63,7 @@ describe('json-server', () => {
             {
               "test": 2
             }
-          ],
-          "keys": []
+          ]
         });
       });
   });
@@ -90,8 +89,7 @@ describe('json-server', () => {
             {
               "test": "Которувоч"
             }
-          ],
-          "keys": []
+          ]
         });
       });
   });

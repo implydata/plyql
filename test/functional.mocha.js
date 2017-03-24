@@ -287,7 +287,7 @@ describe('query', function() {
     }`;
 
     return Q.nfcall(exec,
-        `bin/plyql -h ${druidHost} --custom-transforms '${ct}' -q 'SELECT CUSTOM_TRANSFORM(page, dotify) FROM wikipedia GROUP BY 1 LIMIT 5'`
+        `bin/plyql -h ${druidHost} --custom-transforms '${ct}' -q 'SELECT CUSTOM_TRANSFORM(page, dotify), COUNT(*) FROM wikipedia GROUP BY 1 LIMIT 5'`
       )
       .then((res) => {
         expect(res[0]).to.contain(".T.h.e. .S.e.c.r.e.t. .L.i.f.e. .o.f.......");
@@ -296,7 +296,7 @@ describe('query', function() {
 
   it('works with custom transforms from file', () => {
     return Q.nfcall(exec,
-      `bin/plyql -h ${druidHost} --custom-transforms @test/utils/custom/fancy-transforms.json -q 'SELECT CUSTOM_TRANSFORM(page, dotify) FROM wikipedia GROUP BY 1 LIMIT 5'`
+      `bin/plyql -h ${druidHost} --custom-transforms @test/utils/custom/fancy-transforms.json -q 'SELECT CUSTOM_TRANSFORM(page, dotify), COUNT(*) FROM wikipedia GROUP BY 1 LIMIT 5'`
     )
       .then((res) => {
         expect(res[0]).to.contain(".T.h.e. .S.e.c.r.e.t. .L.i.f.e. .o.f.......");
@@ -362,7 +362,7 @@ describe('query', function() {
             "Field": "commentLength",
             "Key": "",
             "Null": "YES",
-            "Type": "STRING"
+            "Type": "NUMBER"
           },
           {
             "Default": null,
@@ -418,7 +418,7 @@ describe('query', function() {
             "Field": "deltaBucket100",
             "Key": "",
             "Null": "YES",
-            "Type": "STRING"
+            "Type": "NUMBER"
           },
           {
             "Default": null,
@@ -547,6 +547,14 @@ describe('query', function() {
             "Key": "",
             "Null": "YES",
             "Type": "STRING"
+          },
+          {
+            "Default": null,
+            "Extra": "",
+            "Field": "sometimeLaterMs",
+            "Key": "",
+            "Null": "YES",
+            "Type": "NUMBER"
           },
           {
             "Default": null,

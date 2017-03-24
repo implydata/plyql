@@ -328,7 +328,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
         throw new Error(`Could not parse interval: ${intervalString}`);
       }
 
-      filter = $(timeAttribute).in(interval);
+      filter = $(timeAttribute).overlap(interval);
     }
 
     let masterSource = parsed['source'] || parsed['data-source'] || null;

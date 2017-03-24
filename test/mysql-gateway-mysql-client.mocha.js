@@ -231,7 +231,7 @@ describe('mysql-gateway-mysql-client', function() {
 
     assert('information schema.columns 1', quarter, (stdOut) => stdOut.indexOf(sane`
       qr___time_ok	sum_added_ok
-      3	97393744
+      3	97393743
       `) !== -1, testComplete);
   });
 

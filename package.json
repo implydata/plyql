@@ -42,22 +42,22 @@
     "has-own-prop": "1.0.0",
     "moment-timezone": "0.5.11",
     "nopt": "4.0.1",
-    "plywood": "0.16.5",
+    "plywood": "0.17.1",
     "plywood-base-api": "0.2.5",
     "plywood-druid-requester": "2.1.1",
     "plywood-mysql-requester": "2.1.0",
-    "q": "1.4.1",
+    "q": "1.5.0",
     "table": "4.0.1",
     "tslib": "1.6.0",
     "vogievetsky-mysql2": "1.0.0-rc.1"
   },
   "devDependencies": {
-    "@types/node": "7.0.7",
+    "@types/node": "7.0.10",
     "chai": "3.5.0",
     "mocha": "3.2.0",
     "node-spawn-server": "1.0.1",
     "request": "2.81.0",
-    "tdi": "0.2.20",
+    "tdi": "0.2.21",
     "typescript": "2.2.1"
   },
   "bin": {
