@@ -2,7 +2,12 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
-## 0.10.2
+## 0.10.4
+
+- New Plywood supports many new things
+- ToDo: fill in from PR
+
+## 0.10.3
 
 - Added new plywood, including support for `CASE`, `IF`
 
