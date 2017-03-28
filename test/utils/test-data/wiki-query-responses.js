@@ -39,16 +39,13 @@ exports.result = {
         "timestamp": "2015-09-12T00:46:00.000Z",
         "result": [
           {
-            "channel": "ar",
-            "!DUMMY": 4476
+            "channel": "ar"
           },
           {
-            "channel": "be",
-            "!DUMMY": 269
+            "channel": "be"
           },
           {
-            "channel": "bg",
-            "!DUMMY": 778
+            "channel": "b\u0001g"
           }
         ]
       }

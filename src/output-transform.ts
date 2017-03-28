@@ -23,11 +23,15 @@ function streamFlatten(v: any): any {
   return v;
 }
 
+function escapeControlChars(str: string): string {
+  return str.replace(/[\x01-\x1A]/g, (x) => '\\x' + ('0' + x.charCodeAt(0).toString(16)).substr(-2))
+}
+
 function formatValue(v: any, tz: Timezone): any {
   if (v == null) return 'NULL';
   if (isDate(v)) return Timezone.formatDateWithTimezone(v, tz);
   if (Set.isSet(v) || TimeRange.isTimeRange(v)) return v.toString(tz);
-  return v;
+  return escapeControlChars('' + v);
 }
 
 export function getOutputTransform(output: string, timezone: Timezone): Transform {

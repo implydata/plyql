@@ -2,10 +2,14 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.5
+
+- Fix control characters in table output
+
 ## 0.10.4
 
 - New Plywood supports many new things
-- ToDo: fill in from PR
+- Support for `SELECT t.* FROM blah t`
 
 ## 0.10.3
 
