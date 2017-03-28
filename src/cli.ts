@@ -32,9 +32,13 @@ import { getVariablesDataset } from './variables';
 import { getStatusDataset } from './status';
 import { addExternal, getSchemataDataset, getTablesDataset, getColumnsDataset } from './schema';
 
+function escapeControlChars(str: string): string {
+  return str.replace(/[\x01-\x1A]/g, (x) => '\\x' + ('0' + x.charCodeAt(0).toString(16)).substr(-2))
+}
+
 function formatNull(v: any): any {
   if (v == null) return 'NULL';
-  return v;
+  return escapeControlChars('' + v);
 }
 
 function printUsage() {

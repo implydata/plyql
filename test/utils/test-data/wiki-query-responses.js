@@ -47,7 +47,7 @@ exports.result = {
             "!DUMMY": 269
           },
           {
-            "channel": "bg",
+            "channel": "b\u0001g",
             "!DUMMY": 778
           }
         ]
