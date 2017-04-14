@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.6
+
+- New plywood bring many fixes
+
 ## 0.10.5
 
 - Fix control characters in table output

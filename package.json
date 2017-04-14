@@ -40,9 +40,9 @@
     "express": "4.15.2",
     "express-serve-static-core": "0.1.1",
     "has-own-prop": "1.0.0",
-    "moment-timezone": "0.5.11",
+    "moment-timezone": "0.5.13",
     "nopt": "4.0.1",
-    "plywood": "0.17.2",
+    "plywood": "0.17.7",
     "plywood-base-api": "0.2.5",
     "plywood-druid-requester": "2.1.1",
     "plywood-mysql-requester": "2.1.0",
@@ -57,7 +57,7 @@
     "mocha": "3.2.0",
     "node-spawn-server": "1.0.1",
     "request": "2.81.0",
-    "tdi": "0.2.21",
+    "tdi": "0.2.23",
     "typescript": "2.2.2"
   },
   "bin": {
