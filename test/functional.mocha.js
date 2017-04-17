@@ -593,7 +593,7 @@ describe('query', function() {
   });
 
   it('makes a describe non-existing table', () => {
-    return Q.nfcall(exec, `bin/plyql -h ${druidHost} -q 'DESCRIBE wikiplebia' -o JSON `)
+    return Q.nfcall(exec, `bin/plyql -h ${druidHost} -q 'DESCRIBE wikiplebia' -o JSON`)
       .then(() => {
         throw new Error('DID_NOT_ERROR');
       })
