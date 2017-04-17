@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,16 +39,13 @@ exports.result = {
         "timestamp": "2015-09-12T00:46:00.000Z",
         "result": [
           {
-            "channel": "ar",
-            "!DUMMY": 4476
+            "channel": "ar"
           },
           {
-            "channel": "be",
-            "!DUMMY": 269
+            "channel": "be"
           },
           {
-            "channel": "bg",
-            "!DUMMY": 778
+            "channel": "b\u0001g"
           }
         ]
       }

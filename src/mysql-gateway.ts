@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,15 +80,6 @@ export function columnToMySQL(column: any, table: string) {
     flags: 32896,
     decimals: 0
   }
-}
-
-export interface MySQLResult {
-  type: 'ok' | 'error' | 'dataset' | 'connectionId'
-  dataset?: Dataset;
-  table?: string;
-  name?: string;
-  code?: number;
-  message?: string;
 }
 
 export interface MySQLParameters {

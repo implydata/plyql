@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -231,7 +231,7 @@ describe('mysql-gateway-mysql-client', function() {
 
     assert('information schema.columns 1', quarter, (stdOut) => stdOut.indexOf(sane`
       qr___time_ok	sum_added_ok
-      3	97393744
+      3	97393743
       `) !== -1, testComplete);
   });
 
@@ -247,21 +247,24 @@ describe('mysql-gateway-mysql-client', function() {
       GROUP BY 2
     `;
 
-    assert('quarterWithYear', quarterWithYear, (stdOut) => stdOut.indexOf(sane`
+    assert('quarterWithYear', quarterWithYear, (stdOut) => {
+      return stdOut.indexOf(sane`
       2015-07-01 00:00:00
-      `) !== -1, testComplete);
+      `) !== -1
+    }, testComplete);
   });
 
   it('timezone display basic (no tz provided)', (testComplete) => {
     let query = sane`
       SELECT max(__time) from wikipedia
-     `;
+    `;
 
-    assert('respects timezones (no tz provided)', query, (stdOut) => stdOut.indexOf(sane`
+    assert('respects timezones (no tz provided)', query, (stdOut) => {
+      return stdOut.indexOf(sane`
         max(__time)
         2015-09-12 23:59:00
-      `) !== -1, testComplete
-    );
+      `) !== -1
+    }, testComplete);
   });
 
   it('timezone display range (no tz provided)', (testComplete) => {
@@ -269,11 +272,12 @@ describe('mysql-gateway-mysql-client', function() {
       SELECT TIME_BUCKET(__time, 'P1D') AS V from wikipedia GROUP BY 1
      `;
 
-    assert('respects timezones (no tz provided)', query, (stdOut) => stdOut.indexOf(sane`
+    assert('respects timezones (no tz provided)', query, (stdOut) => {
+      return stdOut.indexOf(sane`
         V
         2015-09-12 00:00:00
-      `) !== -1, testComplete
-    );
+      `) !== -1
+    }, testComplete);
   });
 
   after(() => {
@@ -284,22 +288,23 @@ describe('mysql-gateway-mysql-client', function() {
 
 describe('timezones', function() {
   this.timeout(50000);
+
   before((done) => {
     child = spawnServer(`bin/plyql -h ${HOST} -Z Asia/Kathmandu --experimental-mysql-gateway ${TEST_PORT}`);
     child.onHook(`port: ${TEST_PORT}`, done);
- });
-
+  });
 
   it('timezone display basic (tz different from above)', (testComplete) => {
     let query = sane`
       SELECT max(__time) from wikipedia
      `;
 
-    assert('respects timezones (different from above)', query, (stdOut) => stdOut.indexOf(sane`
+    assert('respects timezones (different from above)', query, (stdOut) => {
+      return stdOut.indexOf(sane`
         max(__time)
         2015-09-13 05:44:00
-      `) !== -1, testComplete
-    );
+      `) !== -1
+    }, testComplete);
   });
 
   it('timezone display range (tz different from above)', (testComplete) => {
@@ -307,12 +312,13 @@ describe('timezones', function() {
       SELECT TIME_BUCKET(__time, 'P1D') AS V from wikipedia GROUP BY 1
      `;
 
-    assert('respects timezones (different from above)', query, (stdOut) => stdOut.indexOf(sane`
+    assert('respects timezones (different from above)', query, (stdOut) => {
+      return stdOut.indexOf(sane`
         V
         2015-09-12 00:00:00
         2015-09-13 00:00:00
-      `) !== -1, testComplete
-    );
+      `) !== -1
+    }, testComplete);
   });
 
   after(() => {

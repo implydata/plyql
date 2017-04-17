@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 const { expect } = require('chai');
-const { sane } = require('./utils/utils.js');
+const { sane, parseLineJson } = require('./utils/utils.js');
 const { exec } = require('child_process');
 const Q = require('q');
 
@@ -42,7 +42,7 @@ describe('query', function() {
   it('does basic query with json output', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -o json -q 'SELECT 1+1'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(JSON.parse(stdout)).to.deep.equal([
+      expect(parseLineJson(stdout)).to.deep.equal([
         {
           "1+1": 2
         }
@@ -52,7 +52,7 @@ describe('query', function() {
     });
   });
 
-  it('does a SELECT query', (testComplete) => {
+  it('does a SELECT query GROUP BY', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -q 'SELECT page, SUM(count) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY page ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
       expect(stdout).to.contain(sane`
@@ -63,6 +63,22 @@ describe('query', function() {
         │ Jeremy Corbyn                                            │ 241   │
         │ Wikipedia:Administrators' noticeboard/Incidents          │ 228   │
         └──────────────────────────────────────────────────────────┴───────┘
+      `);
+      expect(stderr).to.equal('');
+      testComplete();
+    });
+  });
+
+  it('does a SELECT query GROUP BY with CASE', (testComplete) => {
+    exec(`bin/plyql -h ${druidHost} -q 'SELECT CASE page WHEN "Jeremy Corbyn" THEN "Labor" ELSE "Other" END AS casePage, SUM(count) AS 'Count' FROM wikipedia WHERE channel = "en" GROUP BY 1 ORDER BY Count DESC LIMIT 3;'`, (error, stdout, stderr) => {
+      expect(error).to.equal(null);
+      expect(stdout).to.contain(sane`
+        ┌──────────┬────────┐
+        │ casePage │ Count  │
+        ├──────────┼────────┤
+        │ Other    │ 114470 │
+        │ Labor    │ 241    │
+        └──────────┴────────┘
       `);
       expect(stderr).to.equal('');
       testComplete();
@@ -102,7 +118,7 @@ describe('query', function() {
   it('does a SHOW TABLES query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -q 'SHOW TABLES' -o JSON`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(JSON.parse(stdout)).to.deep.equal([
+      expect(parseLineJson(stdout)).to.deep.equal([
         {
           "Tables_in_database": "COLUMNS"
         },
@@ -127,12 +143,9 @@ describe('query', function() {
   it('does timezone conversion query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost} -Z "America/Los_Angeles" -o json -q 'SELECT TIMESTAMP("2016-04-04T01:02:03") AS T'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(JSON.parse(stdout)).to.deep.equal([
+      expect(parseLineJson(stdout)).to.deep.equal([
         {
-          "T": {
-            "type": "TIME",
-            "value": "2016-04-04T08:02:03.000Z"
-          }
+          "T": "2016-04-04T08:02:03.000Z"
         }
       ]);
       expect(stderr).to.equal('');
@@ -213,53 +226,53 @@ describe('query', function() {
     });
   });
 
-  it('makes a case insensitive query', () => Q.nfcall(exec,
-    `bin/plyql -h ${druidHost} -q 'SELECT pAgE as PAGE from wikipedia WHERE PAGE > "W" AND PAGE < "Y" limit 5' -o JSON`
-    )
-    .then((res) => {
-      expect(JSON.parse(res[0])).to.deep.equal([
-        {
-          "PAGE": "Wikipedia talk:WikiProject Arts"
-        },
-        {
-          "PAGE": "Winthrop, Maine"
-        },
-        {
-          "PAGE": "Wikipedia:Articles for deletion/Log/2015 September 12"
-        },
-        {
-          "PAGE": "Wikipedia:Articles for deletion/Log/2015 September 4"
-        },
-        {
-          "PAGE": "Wikipedia:Articles for deletion/Dmitry Geller"
-        }
-      ]);
-    })
-  );
+  it('makes a case insensitive query', () => {
+    return Q.nfcall(exec, `bin/plyql -h ${druidHost} -q 'SELECT pAgE as PAGE from wikipedia WHERE PAGE > "W" AND PAGE < "Y" limit 5' -o JSON`)
+      .then((res) => {
+        expect(parseLineJson(res[0])).to.deep.equal([
+          {
+            "PAGE": "Wikipedia talk:WikiProject Arts"
+          },
+          {
+            "PAGE": "Winthrop, Maine"
+          },
+          {
+            "PAGE": "Wikipedia:Articles for deletion/Log/2015 September 12"
+          },
+          {
+            "PAGE": "Wikipedia:Articles for deletion/Log/2015 September 4"
+          },
+          {
+            "PAGE": "Wikipedia:Articles for deletion/Dmitry Geller"
+          }
+        ]);
+      });
+  });
 
-  it('does a group by query and respects order', () => Q.nfcall(exec,
-    `bin/plyql -h ${druidHost} -q 'SELECT sum(added), page from wikipedia group by 2 limit 5'`
-    ).then((res) => {
-      expect(res[0]).to.contain(sane`
-        ┌────────────┬─────────────────────────────────┐
-        │ sum(added) │ page                            │
-        ├────────────┼─────────────────────────────────┤
-        │ 1940       │ !T.O.O.H.!                      │
-        │ 68         │ "The Secret Life of..."         │
-        │ 4717       │ '''Kertomus Venetsiasta''' 1977 │
-        │ 1612       │ 'Ajde Jano                      │
-        │ 30         │ 'Alî Sharî'atî                  │
-        └────────────┴─────────────────────────────────┘
-      `)}
-    )
-  );
+  it('does a group by query and respects order', () => {
+    return Q.nfcall(exec, `bin/plyql -h ${druidHost} -q 'SELECT sum(added), page from wikipedia group by 2 limit 5'`)
+      .then((res) => {
+        expect(res[0]).to.contain(sane`
+          ┌────────────┬─────────────────────────────────┐
+          │ sum(added) │ page                            │
+          ├────────────┼─────────────────────────────────┤
+          │ 1940       │ !T.O.O.H.!                      │
+          │ 68         │ "The Secret Life of..."         │
+          │ 4717       │ '''Kertomus Venetsiasta''' 1977 │
+          │ 1612       │ 'Ajde Jano                      │
+          │ 30         │ 'Alî Sharî'atî                  │
+          └────────────┴─────────────────────────────────┘
+        `)
+      });
+  });
 
-  it('respects bounds', () => Q.nfcall(exec,
-    `bin/plyql -h ${druidHost} -q 'SELECT count(*) FROM wikipedia WHERE __time BETWEEN "2015-09-12 00:46:00" AND "2015-09-12 00:48:00"'`
+  it('respects bounds', () => {
+    return Q.nfcall(exec,
+      `bin/plyql -h ${druidHost} -q 'SELECT count(*) FROM wikipedia WHERE __time BETWEEN "2015-09-12 00:46:00" AND "2015-09-12 00:48:00"'`
     ).then((res) => {
       expect(res[0]).to.contain('409')
-    })
-  );
+    });
+  });
 
   it('works with custom transforms from command line', () => {
     // Note: String.fromCharCode(46) === "." and String.fromCharCode() === ""
@@ -274,38 +287,35 @@ describe('query', function() {
     }`;
 
     return Q.nfcall(exec,
-        `bin/plyql -h ${druidHost} --custom-transforms '${ct}' -q 'SELECT CUSTOM_TRANSFORM(page, dotify) FROM wikipedia GROUP BY 1 LIMIT 5'`
+        `bin/plyql -h ${druidHost} --custom-transforms '${ct}' -q 'SELECT CUSTOM_TRANSFORM(page, dotify), COUNT(*) FROM wikipedia GROUP BY 1 LIMIT 5'`
       )
       .then((res) => {
         expect(res[0]).to.contain(".T.h.e. .S.e.c.r.e.t. .L.i.f.e. .o.f.......");
       })
-    }
-  );
+  });
 
   it('works with custom transforms from file', () => {
-      return Q.nfcall(exec,
-        `bin/plyql -h ${druidHost} --custom-transforms @test/utils/custom/fancy-transforms.json -q 'SELECT CUSTOM_TRANSFORM(page, dotify) FROM wikipedia GROUP BY 1 LIMIT 5'`
-      )
-        .then((res) => {
-          expect(res[0]).to.contain(".T.h.e. .S.e.c.r.e.t. .L.i.f.e. .o.f.......");
-        })
-    }
-  );
+    return Q.nfcall(exec,
+      `bin/plyql -h ${druidHost} --custom-transforms @test/utils/custom/fancy-transforms.json -q 'SELECT CUSTOM_TRANSFORM(page, dotify), COUNT(*) FROM wikipedia GROUP BY 1 LIMIT 5'`
+    )
+      .then((res) => {
+        expect(res[0]).to.contain(".T.h.e. .S.e.c.r.e.t. .L.i.f.e. .o.f.......");
+      })
+  });
 
   it('works with custom aggregations from file', () => {
-      return Q.nfcall(exec,
-        `bin/plyql -h ${druidHost} --custom-aggregations @test/utils/custom/fancy-aggregations.json -q 'SELECT channel, CUSTOM_AGGREGATE("addedMod1337") FROM wikipedia GROUP BY 1 LIMIT 5'`
-      )
-        .then((res) => {
-          expect(res[0]).to.contain("1097");
-        })
-    }
-  );
+    return Q.nfcall(exec,
+      `bin/plyql -h ${druidHost} --custom-aggregations @test/utils/custom/fancy-aggregations.json -q 'SELECT channel, CUSTOM_AGGREGATE("addedMod1337") FROM wikipedia GROUP BY 1 LIMIT 5'`
+    )
+      .then((res) => {
+        expect(res[0]).to.contain("1097");
+      })
+  });
 
   it('makes a describe existing table', () => {
     return Q.nfcall(exec, `bin/plyql -h ${druidHost} -q 'DESCRIBE wikipedia' -o JSON`)
       .then((res) => {
-        expect(JSON.parse(res[0])).to.deep.equal([
+        expect(parseLineJson(res[0])).to.deep.equal([
           {
             "Default": null,
             "Extra": "",
@@ -352,7 +362,7 @@ describe('query', function() {
             "Field": "commentLength",
             "Key": "",
             "Null": "YES",
-            "Type": "STRING"
+            "Type": "NUMBER"
           },
           {
             "Default": null,
@@ -408,7 +418,7 @@ describe('query', function() {
             "Field": "deltaBucket100",
             "Key": "",
             "Null": "YES",
-            "Type": "STRING"
+            "Type": "NUMBER"
           },
           {
             "Default": null,
@@ -424,7 +434,7 @@ describe('query', function() {
             "Field": "delta_hist",
             "Key": "",
             "Null": "YES",
-            "Type": "NUMBER"
+            "Type": "NULL"
           },
           {
             "Default": null,
@@ -512,7 +522,7 @@ describe('query', function() {
             "Field": "page_unique",
             "Key": "",
             "Null": "YES",
-            "Type": "STRING"
+            "Type": "NULL"
           },
           {
             "Default": null,
@@ -541,6 +551,14 @@ describe('query', function() {
           {
             "Default": null,
             "Extra": "",
+            "Field": "sometimeLaterMs",
+            "Key": "",
+            "Null": "YES",
+            "Type": "NUMBER"
+          },
+          {
+            "Default": null,
+            "Extra": "",
             "Field": "user",
             "Key": "",
             "Null": "YES",
@@ -560,7 +578,7 @@ describe('query', function() {
             "Field": "user_theta",
             "Key": "",
             "Null": "YES",
-            "Type": "STRING"
+            "Type": "NULL"
           },
           {
             "Default": null,
@@ -568,7 +586,7 @@ describe('query', function() {
             "Field": "user_unique",
             "Key": "",
             "Null": "YES",
-            "Type": "STRING"
+            "Type": "NULL"
           }
         ]);
       })

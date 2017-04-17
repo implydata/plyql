@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ describe('mysql-gateway-java-client', function() {
       expect(error).to.equal(null);
       expect(stderr).to.equal('');
 
-      child = spawn('bin/plyql', `-h 192.168.99.100 -i P2Y --druid-time-attribute time --force-boolean isNew --experimental-mysql-gateway ${TEST_PORT}`.split(' '));
+      child = spawn('bin/plyql', `-h 192.168.99.100 -i P2Y --force-boolean isNew --experimental-mysql-gateway ${TEST_PORT}`.split(' '));
 
       child.stderr.on('data', (data) => {
         throw new Error(data.toString());

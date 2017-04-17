@@ -2,6 +2,39 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.7
+
+- And we're out of beta.
+- We're releasing on time!
+
+## 0.10.6
+
+- New plywood bring many fixes
+
+## 0.10.5
+
+- Fix control characters in table output
+
+## 0.10.4
+
+- New Plywood supports many new things
+- Support for `SELECT t.* FROM blah t`
+
+## 0.10.3
+
+- Added new plywood, including support for `CASE`, `IF`
+
+## 0.10.2
+
+- Included assets file
+
+## 0.10.1
+
+- Update to streaming Plywood
+- Added ability to use a socks proxy to connect to Druid via CLI arguments: `--socks-host`, `--socks-username`, `--socks-password`
+- Added `--group-by-v2` CLI flag which sets groupByStrategy to 'v2' in the context to ensure use of the V2 GroupBy engine  
+
+
 ## 0.9.16
 
 - Update Plywood to not bug out on Druid 0.10.x

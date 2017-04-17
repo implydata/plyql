@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ const Q = require('q');
 
 const mockDruid = require('./utils/mock-druid');
 const queryResult = require('./utils/test-data/wiki-query-responses').result;
-const { sane } = require('./utils/utils.js');
+const { sane, parseLineJson } = require('./utils/utils.js');
 
 const druidHost = 'localhost';
 const TEST_PORT = 28082;
@@ -49,24 +49,24 @@ describe('simulate', () => {
     })
   });
 
-  it('does a basic query', () => Q.nfcall(exec,
-    `bin/plyql -h ${druidHost}:${TEST_PORT} -q 'SELECT 1+1'`
-  ).then((res) => {
-      expect(res[0]).to.contain(sane`
-        ┌─────┐
-        │ 1+1 │
-        ├─────┤
-        │ 2   │
-        └─────┘
-      `)}
-      )
-  );
+  it('does a basic query', () => {
+    return Q.nfcall(exec, `bin/plyql -h ${druidHost}:${TEST_PORT} -q 'SELECT 1+1'`)
+      .then((res) => {
+        expect(res[0]).to.contain(sane`
+          ┌─────┐
+          │ 1+1 │
+          ├─────┤
+          │ 2   │
+          └─────┘
+        `)
+      });
+  });
 
 
   it('does basic query with json output', (testComplete) => {
     exec(`bin/plyql -h ${druidHost}:${TEST_PORT} -o json -q 'SELECT 1+1'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(JSON.parse(stdout)).to.deep.equal([
+      expect(parseLineJson(stdout)).to.deep.equal([
         {
           "1+1": 2
         }
@@ -76,25 +76,25 @@ describe('simulate', () => {
     });
   });
 
-  it('does a topN query (group by with limit)', () => Q.nfcall(exec,
-    `bin/plyql -h ${druidHost}:${TEST_PORT} -q 'select channel from wikipedia group by channel limit 3;'`
-    ).then((res) => {
-      expect(res[0]).to.contain(sane`
-        ┌─────────┐
-        │ channel │
-        ├─────────┤
-        │ ar      │
-        │ be      │
-        │ bg      │
-        └─────────┘
-      `)}
-    )
-  );
+  it('does a topN query (group by with limit)', () => {
+    return Q.nfcall(exec, `bin/plyql -h ${druidHost}:${TEST_PORT} -q 'select channel from wikipedia group by channel limit 3;'`)
+      .then((res) => {
+        expect(res[0]).to.contain(sane`
+          ┌─────────┐
+          │ channel │
+          ├─────────┤
+          │ ar      │
+          │ be      │
+          │ b\\x01g  │
+          └─────────┘
+        `);
+      });
+  });
 
   it('does a SHOW TABLES query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost}:${TEST_PORT} -q 'SHOW TABLES' -o JSON`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(JSON.parse(stdout)).to.deep.equal([
+      expect(parseLineJson(stdout)).to.deep.equal([
         {
           "Tables_in_database": "COLUMNS"
         },
@@ -119,12 +119,9 @@ describe('simulate', () => {
   it('does timezone conversion query', (testComplete) => {
     exec(`bin/plyql -h ${druidHost}:${TEST_PORT} -Z "America/Los_Angeles" -o json -q 'SELECT TIMESTAMP("2016-04-04T01:02:03") AS T'`, (error, stdout, stderr) => {
       expect(error).to.equal(null);
-      expect(JSON.parse(stdout)).to.deep.equal([
+      expect(parseLineJson(stdout)).to.deep.equal([
         {
-          "T": {
-            "type": "TIME",
-            "value": "2016-04-04T08:02:03.000Z"
-          }
+          "T": "2016-04-04T08:02:03.000Z"
         }
       ]);
       expect(stderr).to.equal('');

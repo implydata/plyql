@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,4 +31,15 @@ exports.sane = function() {
     .replace(/\\`/g, '`')    // Fix \` that should be `
     .replace(/\\\{/g, '{')   // Fix \{ that should be {
     .replace(/\\\\/g, '\\'); // Fix \\ that should be \
+};
+
+
+exports.parseLineJson = function(str) {
+  if (str[str.length - 1] === '\n') str = str.substr(0, str.length - 1);
+  str = '[' + str.replace(/\n/gm, ',') + ']';
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    throw new Error(`could not ${str}`);
+  }
 };

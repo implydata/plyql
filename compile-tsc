@@ -1,6 +1,0 @@
-#!/bin/bash -eu
-
-rm -rf build/*
-mkdir -p build
-
-node_modules/.bin/tsc

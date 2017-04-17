@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  */
 
 import { Dataset, PlyType, External } from "plywood";
-import * as fs from 'fs';
-import * as path from 'path';
-import {getData} from "./datasets";
+import { getData } from "./datasets";
 
 const DB_NAME = 'plyql1';
 
@@ -240,7 +238,7 @@ function addExternalToColumns(source: string, external: External, mysqlTypes: bo
       "COLUMN_KEY": '',
       "EXTRA": '',
       "PRIVILEGES": "select",
-      "COLUMN_COMMENT": attribute.special || '',
+      "COLUMN_COMMENT": attribute.nativeType || '',
       "GENERATION_EXPRESSION": ''
     });
   }

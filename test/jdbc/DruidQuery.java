@@ -14,7 +14,7 @@ class DruidQuery
       Connection con = DriverManager.getConnection(args[0]);
       Statement stmt = con.createStatement();
       ResultSet rs = stmt.executeQuery(
-        "SELECT DATE_FORMAT(`time`, '%Y-%m-%d 00:00:00') AS `Time`, `channel` AS `Channel`, `isNew` AS IsNew, SUM(count) AS Count, SUM(`added`)/100 AS 'Added' FROM wikipedia GROUP BY DATE_FORMAT(`time`, '%Y-%m-%d 00:00:00'), channel, isNew ORDER BY Count DESC LIMIT 5"
+        "SELECT DATE_FORMAT(`__time`, '%Y-%m-%d 00:00:00') AS `Time`, `channel` AS `Channel`, `isNew` AS IsNew, SUM(count) AS Count, SUM(`added`)/100 AS 'Added' FROM wikipedia GROUP BY 1, 2, 3 ORDER BY Count DESC LIMIT 5"
       );
 
       while (rs.next()) {

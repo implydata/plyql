@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { PlywoodRequester } from 'plywood-base-api';
 import { $, retryRequesterFactory, verboseRequesterFactory, concurrentLimitRequesterFactory } from 'plywood';
 import { druidRequesterFactory, DruidRequestDecorator } from 'plywood-druid-requester';
 //import { mySqlRequesterFactory } from 'plywood-mysql-requester';
@@ -25,22 +26,31 @@ export interface ProperDruidRequesterOptions {
   verbose?: boolean;
   concurrentLimit?: number;
   requestDecorator?: DruidRequestDecorator;
+  socksHost?: string;
+  socksUsername?: string;
+  socksPassword?: string;
 }
 
-export function properDruidRequesterFactory(options: ProperDruidRequesterOptions): Requester.PlywoodRequester<any> {
+export function properDruidRequesterFactory(options: ProperDruidRequesterOptions): PlywoodRequester<any> {
   let {
     druidHost,
     retry,
     timeout,
     verbose,
     concurrentLimit,
-    requestDecorator
+    requestDecorator,
+    socksHost,
+    socksUsername,
+    socksPassword
   } = options;
 
   let druidRequester = druidRequesterFactory({
     host: druidHost,
     timeout: timeout || 30000,
-    requestDecorator
+    requestDecorator,
+    socksHost,
+    socksUsername,
+    socksPassword
   });
 
   if (retry) {

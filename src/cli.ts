@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import * as path from 'path';
 import * as hasOwnProp from 'has-own-prop';
 import * as Q from 'q';
 import * as nopt from 'nopt';
-import { table, getBorderCharacters } from 'table';
+import { WritableStream } from 'readable-stream';
 
 import { Timezone, parseInterval, isDate } from 'chronoshift';
 
@@ -27,7 +27,8 @@ import { $, Expression, Datum, Dataset, PlywoodValue, TimeRange,
   External, DruidExternal, AttributeJSs, SQLParse, version, Set } from 'plywood';
 
 import { properDruidRequesterFactory } from './requester';
-import { executeSQLParse } from './plyql-executor';
+import { executeSQLParseStream } from './plyql-executor';
+import { getOutputTransform } from './output-transform';
 
 import { getVariablesDataset } from './variables';
 import { getStatusDataset } from './status';
@@ -37,12 +38,6 @@ import {
   getWarningsDataset
 } from "./datasets";
 
-function formatValue(v: any, tz: Timezone): any {
-  if (v == null) return 'NULL';
-  if (isDate(v)) return Timezone.formatDateWithTimezone(v, tz);
-  if (Set.isSet(v) || TimeRange.isTimeRange(v)) return v.toString(tz);
-  return v;
-}
 
 function loadOrParseJSON(json: string): any {
   if (typeof json === 'undefined') return null;
@@ -86,7 +81,7 @@ Arguments:
   -s, --source       use this source for the query (supersedes FROM clause)
   -i, --interval     add (AND) a __time filter between NOW-INTERVAL and NOW
   -Z, --timezone     the default timezone
-  -o, --output       the output format. Possible values: table (default), json, csv, tsv, flat
+  -o, --output       the output format. Possible values: table (default), json, csv, tsv, flat, plywood, plywood-stream
   -t, --timeout      the time before a query is timed out in ms (default: 180000)
   -r, --retry        the number of tries a query should be attempted on error, 0 = unlimited, (default: 2)
   -c, --concurrent   the limit of concurrent queries that could be made simultaneously, 0 = unlimited, (default: 2)
@@ -101,11 +96,16 @@ Arguments:
       --custom-transforms        A JSON string defining custom transforms
       --druid-context            A JSON string representing the Druid context to use
       --skip-cache               disable Druid caching
+      --group-by-v2              Set groupByStrategy to 'v2' in the context to ensure use of the V2 GroupBy engine
       --introspection-strategy   Druid introspection strategy
           Possible values:
           * segment-metadata-fallback - (default) use the segmentMetadata and fallback to GET route
           * segment-metadata-only     - only use the segmentMetadata query
           * datasource-get            - only use GET /druid/v2/datasources/DATASOURCE route
+
+      --socks-host       use this socks host to facilitate a Druid connection
+      --socks-username  the username for the socks proxy
+      --socks-password  the password for the socks proxy
 
       --force-time       force a column to be interpreted as a time column
       --force-boolean    force a column to be interpreted as a boolean
@@ -159,7 +159,12 @@ export interface CommandLineArguments {
   "druid-time-attribute"?: string;
   "rollup"?: boolean;
   "skip-cache"?: boolean;
+  "group-by-v2"?: boolean;
   "introspection-strategy"?: string;
+  "socks-host"?: string;
+  "socks-user"?: string;
+  "socks-username"?: string;
+  "socks-password"?: string;
 
   argv?: any;
 }
@@ -198,7 +203,12 @@ export function parseArguments(): CommandLineArguments {
       "druid-time-attribute": String,
       "rollup": Boolean,
       "skip-cache": Boolean,
-      "introspection-strategy": String
+      "group-by-v2": Boolean,
+      "introspection-strategy": String,
+      "socks-host": String,
+      "socks-user": String,
+      "socks-username": String,
+      "socks-password": String
     },
     {
       "v": ["--verbose"],
@@ -251,23 +261,23 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
 
     let forceUnique: string[] = parsed['force-unique'] || [];
     for (let attributeName of forceUnique) {
-      attributeOverrides.push({ name: attributeName, special: 'unique' });
+      attributeOverrides.push({ name: attributeName, nativeType: 'hyperUnique' });
     }
 
     let forceTheta: string[] = parsed['force-theta'] || [];
     for (let attributeName of forceTheta) {
-      attributeOverrides.push({ name: attributeName, special: 'theta' });
+      attributeOverrides.push({ name: attributeName, nativeType: 'thetaSketch' });
     }
 
     let forceHistogram: string[] = parsed['force-histogram'] || [];
     for (let attributeName of forceHistogram) {
-      attributeOverrides.push({ name: attributeName, special: 'histogram' });
+      attributeOverrides.push({ name: attributeName, nativeType: 'approximateHistogram' });
     }
 
     // Get output
     let output: string = (parsed['output'] || 'table').toLowerCase();
-    if (output !== 'table' && output !== 'json' && output !== 'csv' && output !== 'tsv' && output !== 'flat') {
-      throw new Error(`output must be one of table, json, csv, tsv, or flat (is ${output})`);
+    if (output !== 'table' && output !== 'json' && output !== 'csv' && output !== 'tsv' && output !== 'flat' && output !== 'plywood-stream') {
+      throw new Error(`output must be one of table, json, csv, tsv, flat, plywood, or plywood-stream (is ${output})`);
     }
 
     // Get host
@@ -301,6 +311,10 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       druidContext.populateCache = false;
     }
 
+    if (parsed['group-by-v2']) {
+      druidContext['groupByStrategy'] = 'v2';
+    }
+
     let timeAttribute = parsed['druid-time-attribute'] || '__time';
 
     let filter: Expression = null;
@@ -314,7 +328,7 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
         throw new Error(`Could not parse interval: ${intervalString}`);
       }
 
-      filter = $(timeAttribute).in(interval);
+      filter = $(timeAttribute).overlap(interval);
     }
 
     let masterSource = parsed['source'] || parsed['data-source'] || null;
@@ -364,6 +378,14 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       throw new Error("must set one of --query (-q), --json-server, or --experimental-mysql-gateway");
     }
 
+    let socksHost = parsed['socks-host'];
+    let socksUsername: string;
+    let socksPassword: string;
+    if (socksHost) {
+      socksUsername = parsed['socks-username'] || parsed['socks-user'];
+      socksPassword = parsed['socks-password'];
+    }
+
     // ============== End parse ===============
 
     let requester = properDruidRequesterFactory({
@@ -371,7 +393,10 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
       retry,
       timeout,
       verbose,
-      concurrentLimit: concurrent
+      concurrentLimit: concurrent,
+      socksHost,
+      socksUsername,
+      socksPassword
     });
 
     // ============== Do introspect ===============
@@ -444,58 +469,21 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
         });
       });
 
+
     return contextPromise.then((context) => {
       switch (mode) {
         case 'query':
-          return executeSQLParse(sqlParse, context, timezone)
-            .then((data: PlywoodValue) => {
-              let outputStr = '';
-              if (Dataset.isDataset(data)) {
-                let dataset = <Dataset>data;
-                switch (output) {
-                  case 'table':
-                    let columns = dataset.getColumns();
-                    let flatData = dataset.flatten();
-                    let columnNames = columns.map(c => c.name);
+          let valueStream = executeSQLParseStream(sqlParse, context, timezone);
 
-                    if (columnNames.length) {
-                      let tableData = [columnNames].concat(flatData.map(flatDatum => columnNames.map(cn => formatValue(flatDatum[cn], timezone))));
+          valueStream.on('error', (e: Error) => {
+            console.error(`Could not compute query due to error: ${e.message}`);
+          });
 
-                      outputStr = table(tableData, {
-                        border: getBorderCharacters('norc'),
-                        drawHorizontalLine: (index: number, size: number) => index <= 1 || index === size
-                      });
-                    }
-                    break;
+          valueStream
+            .pipe(getOutputTransform(output, timezone))
+            .pipe(process.stdout);
 
-                  case 'json':
-                    outputStr = JSON.stringify(dataset, null, 2);
-                    break;
-
-                  case 'csv':
-                    outputStr = dataset.toCSV({ finalLineBreak: 'include', timezone });
-                    break;
-
-                  case 'tsv':
-                    outputStr = dataset.toTSV({ finalLineBreak: 'include', timezone });
-                    break;
-
-                  case 'flat':
-                    outputStr = JSON.stringify(dataset.flatten(), null, 2);
-                    break;
-
-                  default:
-                    outputStr = 'Unknown output type';
-                    break;
-                }
-              } else {
-                outputStr = String(data);
-              }
-              console.log(outputStr);
-            })
-            .catch((err: Error) => {
-              throw new Error(`There was an error getting the data: ${err.message}`);
-            });
+          return null;
 
         case 'gateway':
           require('./plyql-mysql-gateway').plyqlMySQLGateway(serverPort, context, timezone, null);
