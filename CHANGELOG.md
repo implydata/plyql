@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.7
+
+- And we're out of beta.
+- We're releasing on time!
+
 ## 0.10.6
 
 - New plywood bring many fixes
