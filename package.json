@@ -30,6 +30,7 @@
     "prepare": "tdi -q",
     "compile": "tsc",
     "watch": "tsc --watch",
+    "pretest": "tsc",
     "test": "mocha"
   },
   "dependencies": {
