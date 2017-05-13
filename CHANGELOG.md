@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.8
+
+- Update to latest plywood with tunable approx histogram
+
 ## 0.10.7
 
 - And we're out of beta.

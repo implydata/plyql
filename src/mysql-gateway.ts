@@ -18,9 +18,9 @@ import * as moment from 'moment-timezone';
 import { Timezone } from 'chronoshift';
 import { Dataset, PlyType } from "plywood";
 import * as mysql from 'vogievetsky-mysql2';
-const TYPES: Lookup<number> = require('vogievetsky-mysql2/lib/constants/types');
-const CHARSETS: Lookup<number> = require('vogievetsky-mysql2/lib/constants/charsets');
-const CLIENT: Lookup<number> = require('vogievetsky-mysql2/lib/constants/client');
+const TYPES: Record<string, number> = require('vogievetsky-mysql2/lib/constants/types');
+const CHARSETS: Record<string, number> = require('vogievetsky-mysql2/lib/constants/charsets');
+const CLIENT: Record<string, number> = require('vogievetsky-mysql2/lib/constants/client');
 
 const capabilityFlags = 0
   | CLIENT['LONG_PASSWORD']           /* new more secure passwords */

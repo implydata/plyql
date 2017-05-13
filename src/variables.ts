@@ -525,7 +525,7 @@ export function getVariablesDataset() {
 
 export function getVariablesFlatDataset() {
   let attributes: Attributes = [];
-  let flatDatum: Lookup<string> = {};
+  let flatDatum: Record<string, string> = {};
   for (let variablesDatum of variablesData) {
     let name = variablesDatum['VARIABLE_NAME'];
     let value: any = variablesDatum['VARIABLE_VALUE'];
