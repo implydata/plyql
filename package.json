@@ -43,7 +43,7 @@
     "has-own-prop": "1.0.0",
     "moment-timezone": "0.5.13",
     "nopt": "4.0.1",
-    "plywood": "0.17.12",
+    "plywood": "0.17.13",
     "plywood-base-api": "0.2.5",
     "plywood-druid-requester": "2.2.0",
     "plywood-mysql-requester": "2.1.0",
