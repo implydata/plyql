@@ -108,6 +108,7 @@ Arguments:
       --socks-password  the password for the socks proxy
 
       --force-time       force a column to be interpreted as a time column
+      --force-string     force a column to be interpreted as a string column
       --force-boolean    force a column to be interpreted as a boolean
       --force-number     force a column to be interpreted as a number
       --force-unique     force a column to be interpreted as a hyperLogLog uniques
@@ -147,6 +148,7 @@ export interface CommandLineArguments {
   "concurrent"?: number;
   "output"?: string;
   "force-time"?: string[];
+  "force-string"?: string[];
   "force-boolean"?: string[];
   "force-number"?: string[];
   "force-unique"?: string[];
@@ -191,6 +193,7 @@ export function parseArguments(): CommandLineArguments {
       "concurrent": Number,
       "output": String,
       "force-time": [String, Array],
+      "force-string": [String, Array],
       "force-boolean": [String, Array],
       "force-number": [String, Array],
       "force-unique": [String, Array],
@@ -247,6 +250,11 @@ export function run(parsed: CommandLineArguments): Q.Promise<any> {
     let forceTime: string[] = parsed['force-time'] || [];
     for (let attributeName of forceTime) {
       attributeOverrides.push({ name: attributeName, type: 'TIME' });
+    }
+
+    let forceString: string[] = parsed['force-string'] || [];
+    for (let attributeName of forceString) {
+      attributeOverrides.push({ name: attributeName, type: 'STRING' });
     }
 
     let forceBoolean: string[] = parsed['force-boolean'] || [];

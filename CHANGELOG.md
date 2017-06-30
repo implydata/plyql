@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.11
+
+- `--force-number` can force columns to be interpreted as string
+- New plywood fixes `LOCATE`
+
 ## 0.10.10
 
 - Update to latest plywood for no reason
