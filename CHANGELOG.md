@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.12
+
+- New Plywood fixes issues with spaces in `LOCATE` and `FALLBACK`
+
 ## 0.10.11
 
 - `--force-number` can force columns to be interpreted as string
