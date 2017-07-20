@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.13
+
+- New Plywood
+
 ## 0.10.12
 
 - New Plywood fixes issues with spaces in `LOCATE` and `FALLBACK`
