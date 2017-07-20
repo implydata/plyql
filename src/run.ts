@@ -17,8 +17,7 @@
 import { run, parseArguments } from './cli';
 
 run(parseArguments())
-  .catch(function(e) {
+  .catch((e) => {
     console.error(e.message);
     process.exit(1);
-  })
-  .done();
+  });

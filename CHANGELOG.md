@@ -2,9 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
-## 0.10.13
+## 0.11.1
 
 - New Plywood
+- Switch to await/async
+
 
 ## 0.10.12
 

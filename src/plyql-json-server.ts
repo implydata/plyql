@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
 import { Timezone } from "chronoshift";
 import { Expression, Datum, PlywoodValue, Dataset, SQLParse } from "plywood";
 import { createJSONServer, JSONParameters } from './json-server';

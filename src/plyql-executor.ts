@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
 import { ReadableStream } from 'readable-stream';
 import { Timezone } from "chronoshift";
 import { Expression, Datum, RefExpression, PlywoodValue, SQLParse } from "plywood";

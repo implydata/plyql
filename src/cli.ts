@@ -17,7 +17,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as hasOwnProp from 'has-own-prop';
-import * as Q from 'q';
 import * as nopt from 'nopt';
 import { WritableStream } from 'readable-stream';
 
@@ -229,283 +228,277 @@ export function parseArguments(): CommandLineArguments {
   );
 }
 
-export function run(parsed: CommandLineArguments): Q.Promise<any> {
-  return Q.fcall(() => {
-    if (parsed.argv.original.length === 0 || parsed.help) {
-      printUsage();
-      return null;
+export async function run(parsed: CommandLineArguments): Promise<void> {
+  if (parsed.argv.original.length === 0 || parsed.help) {
+    printUsage();
+    return null;
+  }
+
+  if (parsed['version']) {
+    printVersion();
+    return null;
+  }
+
+  let verbose: boolean = parsed['verbose'];
+  if (verbose) printVersion();
+
+  // Get forced attribute overrides
+  let attributeOverrides: AttributeJSs = [];
+
+  let forceTime: string[] = parsed['force-time'] || [];
+  for (let attributeName of forceTime) {
+    attributeOverrides.push({ name: attributeName, type: 'TIME' });
+  }
+
+  let forceString: string[] = parsed['force-string'] || [];
+  for (let attributeName of forceString) {
+    attributeOverrides.push({ name: attributeName, type: 'STRING' });
+  }
+
+  let forceBoolean: string[] = parsed['force-boolean'] || [];
+  for (let attributeName of forceBoolean) {
+    attributeOverrides.push({ name: attributeName, type: 'BOOLEAN' });
+  }
+
+  let forceNumber: string[] = parsed['force-number'] || [];
+  for (let attributeName of forceNumber) {
+    attributeOverrides.push({ name: attributeName, type: 'NUMBER' });
+  }
+
+  let forceUnique: string[] = parsed['force-unique'] || [];
+  for (let attributeName of forceUnique) {
+    attributeOverrides.push({ name: attributeName, nativeType: 'hyperUnique' });
+  }
+
+  let forceTheta: string[] = parsed['force-theta'] || [];
+  for (let attributeName of forceTheta) {
+    attributeOverrides.push({ name: attributeName, nativeType: 'thetaSketch' });
+  }
+
+  let forceHistogram: string[] = parsed['force-histogram'] || [];
+  for (let attributeName of forceHistogram) {
+    attributeOverrides.push({ name: attributeName, nativeType: 'approximateHistogram' });
+  }
+
+  // Get output
+  let output: string = (parsed['output'] || 'table').toLowerCase();
+  if (output !== 'table' && output !== 'json' && output !== 'csv' && output !== 'tsv' && output !== 'flat' && output !== 'plywood-stream') {
+    throw new Error(`output must be one of table, json, csv, tsv, flat, plywood, or plywood-stream (is ${output})`);
+  }
+
+  // Get host
+  let host: string = parsed['druid'] || parsed['host'];
+  if (!host) {
+    throw new Error("must have a host");
+  }
+
+  // Get version
+  let druidVersion: string = parsed['druid-version'];
+
+  let timezone = Timezone.UTC;
+  if (parsed['timezone']) {
+    timezone = Timezone.fromJS(parsed['timezone']);
+  }
+
+  let timeout: number = hasOwnProp(parsed, 'timeout') ? parsed['timeout'] : 180000;
+  let retry: number = hasOwnProp(parsed, 'retry') ? parsed['retry'] : 2;
+  let concurrent: number = hasOwnProp(parsed, 'concurrent') ? parsed['concurrent'] : 2;
+
+  let customAggregations: any = loadOrParseJSON(parsed['custom-aggregations']);
+  let customTransforms: any = loadOrParseJSON(parsed['custom-transforms']);
+
+  // Druid Context ---------------------------
+
+  let druidContext: Druid.Context = loadOrParseJSON(parsed['druid-context']) || {};
+  druidContext.timeout = timeout;
+
+  if (parsed['skip-cache']) {
+    druidContext.useCache = false;
+    druidContext.populateCache = false;
+  }
+
+  if (parsed['group-by-v2']) {
+    druidContext['groupByStrategy'] = 'v2';
+  }
+
+  let timeAttribute = parsed['druid-time-attribute'] || '__time';
+
+  let filter: Expression = null;
+  let intervalString: string = parsed['interval'];
+  if (intervalString) {
+    let interval: TimeRange;
+    try {
+      let { computedStart, computedEnd } = parseInterval(intervalString, timezone);
+      interval = TimeRange.fromJS({ start: computedStart, end: computedEnd });
+    } catch (e) {
+      throw new Error(`Could not parse interval: ${intervalString}`);
     }
 
-    if (parsed['version']) {
-      printVersion();
-      return null;
+    filter = $(timeAttribute).overlap(interval);
+  }
+
+  let masterSource = parsed['source'] || parsed['data-source'] || null;
+
+  // Get SQL
+  if (Number(!!parsed['query']) + Number(!!parsed['json-server']) + Number(!!parsed['experimental-mysql-gateway']) > 1) {
+    throw new Error("must set exactly one of --query (-q), --json-server, or --experimental-mysql-gateway");
+  }
+
+  let mode: Mode;
+  let sqlParse: SQLParse;
+  let serverPort: number;
+  if (parsed['query']) {
+    mode = 'query';
+    let query: string = parsed['query'];
+    if (verbose) {
+      console.log('Received query:');
+      console.log(query);
+      console.log('---------------------------');
     }
 
-    let verbose: boolean = parsed['verbose'];
-    if (verbose) printVersion();
-
-    // Get forced attribute overrides
-    let attributeOverrides: AttributeJSs = [];
-
-    let forceTime: string[] = parsed['force-time'] || [];
-    for (let attributeName of forceTime) {
-      attributeOverrides.push({ name: attributeName, type: 'TIME' });
+    try {
+      sqlParse = Expression.parseSQL(query, timezone);
+    } catch (e) {
+      throw new Error(`Could not parse query: ${e.message}`);
     }
 
-    let forceString: string[] = parsed['force-string'] || [];
-    for (let attributeName of forceString) {
-      attributeOverrides.push({ name: attributeName, type: 'STRING' });
+    if (sqlParse.verb && sqlParse.verb !== 'SELECT') { // DESCRIBE + SHOW get re-written
+      throw new Error(`Unsupported SQL verb ${sqlParse.verb} must be SELECT, DESCRIBE, SHOW, or a raw expression`);
     }
 
-    let forceBoolean: string[] = parsed['force-boolean'] || [];
-    for (let attributeName of forceBoolean) {
-      attributeOverrides.push({ name: attributeName, type: 'BOOLEAN' });
+    if (verbose && sqlParse.expression) {
+      console.log('Parsed query as the following plywood expression (as JSON):');
+      console.log(JSON.stringify(sqlParse.expression, null, 2));
+      console.log('---------------------------');
     }
 
-    let forceNumber: string[] = parsed['force-number'] || [];
-    for (let attributeName of forceNumber) {
-      attributeOverrides.push({ name: attributeName, type: 'NUMBER' });
-    }
+  } else if (parsed['json-server']) {
+    mode = 'server';
+    serverPort = parsed['json-server'];
 
-    let forceUnique: string[] = parsed['force-unique'] || [];
-    for (let attributeName of forceUnique) {
-      attributeOverrides.push({ name: attributeName, nativeType: 'hyperUnique' });
-    }
+  } else if (parsed['experimental-mysql-gateway']) {
+    mode = 'gateway';
+    serverPort = parsed['experimental-mysql-gateway'];
 
-    let forceTheta: string[] = parsed['force-theta'] || [];
-    for (let attributeName of forceTheta) {
-      attributeOverrides.push({ name: attributeName, nativeType: 'thetaSketch' });
-    }
+  } else {
+    throw new Error("must set one of --query (-q), --json-server, or --experimental-mysql-gateway");
+  }
 
-    let forceHistogram: string[] = parsed['force-histogram'] || [];
-    for (let attributeName of forceHistogram) {
-      attributeOverrides.push({ name: attributeName, nativeType: 'approximateHistogram' });
-    }
+  let socksHost = parsed['socks-host'];
+  let socksUsername: string;
+  let socksPassword: string;
+  if (socksHost) {
+    socksUsername = parsed['socks-username'] || parsed['socks-user'];
+    socksPassword = parsed['socks-password'];
+  }
 
-    // Get output
-    let output: string = (parsed['output'] || 'table').toLowerCase();
-    if (output !== 'table' && output !== 'json' && output !== 'csv' && output !== 'tsv' && output !== 'flat' && output !== 'plywood-stream') {
-      throw new Error(`output must be one of table, json, csv, tsv, flat, plywood, or plywood-stream (is ${output})`);
-    }
+  // ============== End parse ===============
 
-    // Get host
-    let host: string = parsed['druid'] || parsed['host'];
-    if (!host) {
-      throw new Error("must have a host");
-    }
+  let requester = properDruidRequesterFactory({
+    druidHost: host,
+    retry,
+    timeout,
+    verbose,
+    concurrentLimit: concurrent,
+    socksHost,
+    socksUsername,
+    socksPassword
+  });
 
-    // Get version
-    let explicitDruidVersion: string = parsed['druid-version'];
+  // ============== Do introspect ===============
 
-    let timezone = Timezone.UTC;
-    if (parsed['timezone']) {
-      timezone = Timezone.fromJS(parsed['timezone']);
-    }
+  if (!druidVersion) {
+    druidVersion = await DruidExternal.getVersion(requester);
+  }
 
-    let timeout: number = hasOwnProp(parsed, 'timeout') ? parsed['timeout'] : 180000;
-    let retry: number = hasOwnProp(parsed, 'retry') ? parsed['retry'] : 2;
-    let concurrent: number = hasOwnProp(parsed, 'concurrent') ? parsed['concurrent'] : 2;
+  let onlyDataSource = masterSource || (sqlParse ? sqlParse.table : null);
+  let sources: string[];
+  if (onlyDataSource) {
+    sources = [onlyDataSource];
+  } else {
+    sources = await DruidExternal.getSourceList(requester);
+  }
 
-    let customAggregations: any = loadOrParseJSON(parsed['custom-aggregations']);
-    let customTransforms: any = loadOrParseJSON(parsed['custom-transforms']);
+  if (verbose && !onlyDataSource) {
+    console.log(`Found sources [${sources.join(',')}]`);
+  }
 
-    // Druid Context ---------------------------
+  let context: Datum = {};
 
-    let druidContext: Druid.Context = loadOrParseJSON(parsed['druid-context']) || {};
-    druidContext.timeout = timeout;
+  if (mode === 'gateway') {
+    let variablesDataset = getVariablesDataset();
+    context['GLOBAL_VARIABLES'] = variablesDataset;
+    context['SESSION_VARIABLES'] = variablesDataset;
 
-    if (parsed['skip-cache']) {
-      druidContext.useCache = false;
-      druidContext.populateCache = false;
-    }
+    let statusDataset = getStatusDataset();
+    context['GLOBAL_STATUS'] = statusDataset;
+    context['SESSION_STATUS'] = statusDataset;
 
-    if (parsed['group-by-v2']) {
-      druidContext['groupByStrategy'] = 'v2';
-    }
+    context['CHARACTER_SETS'] = getCharacterSetsDataset();
+    context['COLLATIONS'] = getCollationsDataset();
+    context['KEY_COLUMN_USAGE'] = getKeyColumnUsageDataset();
+    context['INDEX'] = getIndexDataset();
+    context['WARNINGS'] = getWarningsDataset();
+  }
 
-    let timeAttribute = parsed['druid-time-attribute'] || '__time';
+  const introspectedExternals = await Promise.all(sources.map(source => {
+    return External.fromJS({
+      engine: 'druid',
+      version: druidVersion,
+      source,
+      rollup: parsed['rollup'],
+      timeAttribute,
+      allowEternity: true,
+      allowSelectQueries: true,
+      introspectionStrategy: parsed['introspection-strategy'],
+      context: druidContext,
+      customAggregations,
+      customTransforms,
+      filter,
+      attributeOverrides
+    }, requester).introspect()
+  }));
 
-    let filter: Expression = null;
-    let intervalString: string = parsed['interval'];
-    if (intervalString) {
-      let interval: TimeRange;
-      try {
-        let { computedStart, computedEnd } = parseInterval(intervalString, timezone);
-        interval = TimeRange.fromJS({ start: computedStart, end: computedEnd });
-      } catch (e) {
-        throw new Error(`Could not parse interval: ${intervalString}`);
-      }
+  introspectedExternals.forEach((introspectedExternal) => {
+    let source = introspectedExternal.source as string;
+    context[source] = introspectedExternal;
+    addExternal(source, introspectedExternal, mode === 'gateway');
+  });
 
-      filter = $(timeAttribute).overlap(interval);
-    }
+  context['SCHEMATA'] = getSchemataDataset();
+  context['TABLES'] = getTablesDataset();
+  context['COLUMNS'] = getColumnsDataset();
 
-    let masterSource = parsed['source'] || parsed['data-source'] || null;
+  if (mode === 'query' && masterSource && !sqlParse.table && !sqlParse.rewrite) {
+    context['data'] = context[masterSource];
+  }
 
-    // Get SQL
-    if (Number(!!parsed['query']) + Number(!!parsed['json-server']) + Number(!!parsed['experimental-mysql-gateway']) > 1) {
-      throw new Error("must set exactly one of --query (-q), --json-server, or --experimental-mysql-gateway");
-    }
+  if (verbose) console.log(`introspection complete`);
 
-    let mode: Mode;
-    let sqlParse: SQLParse;
-    let serverPort: number;
-    if (parsed['query']) {
-      mode = 'query';
-      let query: string = parsed['query'];
-      if (verbose) {
-        console.log('Received query:');
-        console.log(query);
-        console.log('---------------------------');
-      }
+  // Do query
+  switch (mode) {
+    case 'query':
+      let valueStream = executeSQLParseStream(sqlParse, context, timezone);
 
-      try {
-        sqlParse = Expression.parseSQL(query, timezone);
-      } catch (e) {
-        throw new Error(`Could not parse query: ${e.message}`);
-      }
-
-      if (sqlParse.verb && sqlParse.verb !== 'SELECT') { // DESCRIBE + SHOW get re-written
-        throw new Error(`Unsupported SQL verb ${sqlParse.verb} must be SELECT, DESCRIBE, SHOW, or a raw expression`);
-      }
-
-      if (verbose && sqlParse.expression) {
-        console.log('Parsed query as the following plywood expression (as JSON):');
-        console.log(JSON.stringify(sqlParse.expression, null, 2));
-        console.log('---------------------------');
-      }
-
-    } else if (parsed['json-server']) {
-      mode = 'server';
-      serverPort = parsed['json-server'];
-
-    } else if (parsed['experimental-mysql-gateway']) {
-      mode = 'gateway';
-      serverPort = parsed['experimental-mysql-gateway'];
-
-    } else {
-      throw new Error("must set one of --query (-q), --json-server, or --experimental-mysql-gateway");
-    }
-
-    let socksHost = parsed['socks-host'];
-    let socksUsername: string;
-    let socksPassword: string;
-    if (socksHost) {
-      socksUsername = parsed['socks-username'] || parsed['socks-user'];
-      socksPassword = parsed['socks-password'];
-    }
-
-    // ============== End parse ===============
-
-    let requester = properDruidRequesterFactory({
-      druidHost: host,
-      retry,
-      timeout,
-      verbose,
-      concurrentLimit: concurrent,
-      socksHost,
-      socksUsername,
-      socksPassword
-    });
-
-    // ============== Do introspect ===============
-
-    let contextPromise = (explicitDruidVersion ? Q(explicitDruidVersion) : DruidExternal.getVersion(requester))
-      .then(druidVersion => {
-        let onlyDataSource = masterSource || (sqlParse ? sqlParse.table : null);
-        let sourceList = onlyDataSource ? Q([onlyDataSource]) : DruidExternal.getSourceList(requester);
-
-        return sourceList.then((sources) => {
-          if (verbose && !onlyDataSource) {
-            console.log(`Found sources [${sources.join(',')}]`);
-          }
-
-          let context: Datum = {};
-
-          if (mode === 'gateway') {
-            let variablesDataset = getVariablesDataset();
-            context['GLOBAL_VARIABLES'] = variablesDataset;
-            context['SESSION_VARIABLES'] = variablesDataset;
-
-            let statusDataset = getStatusDataset();
-            context['GLOBAL_STATUS'] = statusDataset;
-            context['SESSION_STATUS'] = statusDataset;
-
-            context['CHARACTER_SETS'] = getCharacterSetsDataset();
-            context['COLLATIONS'] = getCollationsDataset();
-            context['KEY_COLUMN_USAGE'] = getKeyColumnUsageDataset();
-            context['INDEX'] = getIndexDataset();
-            context['WARNINGS'] = getWarningsDataset();
-          }
-
-          return Q.all(sources.map(source => {
-            return External.fromJS({
-              engine: 'druid',
-              version: druidVersion,
-              source,
-              rollup: parsed['rollup'],
-              timeAttribute,
-              allowEternity: true,
-              allowSelectQueries: true,
-              introspectionStrategy: parsed['introspection-strategy'],
-              context: druidContext,
-              customAggregations,
-              customTransforms,
-              filter,
-              attributeOverrides
-            }, requester)
-              .introspect()
-          }))
-            .then((introspectedExternals) => {
-              introspectedExternals.forEach((introspectedExternal) => {
-                let source = introspectedExternal.source as string;
-                context[source] = introspectedExternal;
-                addExternal(source, introspectedExternal, mode === 'gateway');
-              });
-
-              context['SCHEMATA'] = getSchemataDataset();
-              context['TABLES'] = getTablesDataset();
-              context['COLUMNS'] = getColumnsDataset();
-
-              if (mode === 'query' && masterSource && !sqlParse.table && !sqlParse.rewrite) {
-                context['data'] = context[masterSource];
-              }
-
-              if (verbose) console.log(`introspection complete`);
-
-              return context
-            });
-        });
+      valueStream.on('error', (e: Error) => {
+        console.error(`Could not compute query due to error: ${e.message}`);
       });
 
+      valueStream
+        .pipe(getOutputTransform(output, timezone))
+        .pipe(process.stdout);
 
-    return contextPromise.then((context) => {
-      switch (mode) {
-        case 'query':
-          let valueStream = executeSQLParseStream(sqlParse, context, timezone);
+      return null;
 
-          valueStream.on('error', (e: Error) => {
-            console.error(`Could not compute query due to error: ${e.message}`);
-          });
+    case 'gateway':
+      require('./plyql-mysql-gateway').plyqlMySQLGateway(serverPort, context, timezone, null);
+      return null;
 
-          valueStream
-            .pipe(getOutputTransform(output, timezone))
-            .pipe(process.stdout);
+    case 'server':
+      require('./plyql-json-server').plyqlJSONServer(serverPort, context, timezone, null);
+      return null;
 
-          return null;
-
-        case 'gateway':
-          require('./plyql-mysql-gateway').plyqlMySQLGateway(serverPort, context, timezone, null);
-          return null;
-
-        case 'server':
-          require('./plyql-json-server').plyqlJSONServer(serverPort, context, timezone, null);
-          return null;
-
-        default:
-          throw new Error(`unsupported mode ${mode}`);
-      }
-
-    });
-
-  });
+    default:
+      throw new Error(`unsupported mode ${mode}`);
+  }
 }
