@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.11.1
+
+- New plywood handles DOUBLES
+
 ## 0.11.0
 
 - New Plywood
