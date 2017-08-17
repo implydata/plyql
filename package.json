@@ -37,12 +37,12 @@
     "body-parser": "^1.17.2",
     "chronoshift": "^0.6.7",
     "compression": "^1.7.0",
-    "express": "^4.15.3",
+    "express": "^4.15.4",
     "express-serve-static-core": "^0.1.1",
     "has-own-prop": "^1.0.0",
     "moment-timezone": "^0.5.13",
     "nopt": "^4.0.1",
-    "plywood": "^0.17.18",
+    "plywood": "^0.17.19",
     "plywood-base-api": "^0.2.7",
     "plywood-druid-requester": "^2.4.0",
     "plywood-mysql-requester": "^2.1.0",
@@ -51,13 +51,13 @@
     "vogievetsky-mysql2": "1.0.0-rc.1"
   },
   "devDependencies": {
-    "@types/node": "8.0.19",
-    "chai": "4.1.0",
+    "@types/node": "8.0.24",
+    "chai": "4.1.1",
     "mocha": "3.5.0",
     "node-spawn-server": "1.0.1",
     "q": "1.5.0",
     "request": "2.81.0",
-    "tdi": "0.3.13",
+    "tdi": "0.3.14",
     "typescript": "2.4.2"
   },
   "bin": {
