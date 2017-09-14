@@ -137,6 +137,12 @@ export function plyqlMySQLGateway(port: number, context: Datum, timezone: Timezo
             } else {
               throw new Error('unexpected result from expression');
             }
+          })
+          .catch((e) => {
+            conn.writeError({
+              code: 1146,
+              message: e.message
+            });
           });
         return;
 
