@@ -1,6 +1,9 @@
-# PlyQL
+# [ DEPRECATED ] PlyQL
 
 A SQL-like interface to plywood
+
+⛔️ This project has been deprecated due to [SQL support in Druid](http://druid.incubator.apache.org/docs/latest/querying/sql).
+
 
 ## Installation
 
